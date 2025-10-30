@@ -1,0 +1,50 @@
+{% extends "main/student_auth_base.html" %}
+
+{% block title %}ADELSURVEY · Student Sign Up{% endblock %}
+
+{% block brand_subtitle %}Welcome !{% endblock %}
+
+{% block welcome_copy %}
+    <p class="welcome-text">
+        Create your student account to start building and answering surveys tailored to your year and section.
+    </p>
+{% endblock %}
+
+{% block form_fields %}
+    <div class="field-group">
+        <label for="first_name">First Name</label>
+        <input id="first_name" name="first_name" type="text" class="pill-input" placeholder="Enter your first name">
+    </div>
+    <div class="field-group">
+        <label for="last_name">Last Name</label>
+        <input id="last_name" name="last_name" type="text" class="pill-input" placeholder="Enter your last name">
+    </div>
+    <div class="field-group">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" class="pill-input" placeholder="Create a password">
+    </div>
+    <div class="field-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input id="confirm_password" name="confirm_password" type="password" class="pill-input" placeholder="Confirm your password">
+    </div>
+    <div class="field-group field-span-2">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" class="pill-input" placeholder="Enter your email address">
+    </div>
+    <div class="field-group field-span-2">
+        <label for="year_section">Year and Section</label>
+        <select id="year_section" name="year_section" class="pill-input pill-select">
+            <option value="" selected disabled>Select your year and section</option>
+            <option>BSIT 1A</option>
+            <option>BSIT 1B</option>
+            <option>BSIT 2A</option>
+            <option>BSIT 2B</option>
+            <option>BSIT 3A</option>
+            <option>BSIT 3B</option>
+            <option>BSIT 4A</option>
+            <option>BSIT 4B</option>
+        </select>
+    </div>
+{% endblock %}
+
+{% block submit_label %}Sign Up{% endblock %}

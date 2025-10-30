@@ -1,0 +1,26 @@
+{% extends "main/student_auth_base.html" %}
+
+{% block title %}ADELSURVEY · Student Sign In{% endblock %}
+
+{% block brand_subtitle %}Welcome Back{% endblock %}
+
+{% block welcome_copy %}
+    <p class="welcome-text">
+        Sign in with your student credentials to continue where you left off and respond to the latest surveys.
+    </p>
+{% endblock %}
+
+{% block form_classes %}auth-form--single{% endblock %}
+
+{% block form_fields %}
+    <div class="field-group">
+        <label for="signin_email">Email</label>
+        <input id="signin_email" name="email" type="email" class="pill-input" placeholder="Enter your email">
+    </div>
+    <div class="field-group">
+        <label for="signin_password">Password</label>
+        <input id="signin_password" name="password" type="password" class="pill-input" placeholder="Enter your password">
+    </div>
+{% endblock %}
+
+{% block submit_label %}Next{% endblock %}
