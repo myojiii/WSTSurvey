@@ -2,48 +2,163 @@
 
 {% block title %}ADELSURVEY · Student Sign Up{% endblock %}
 
-{% block brand_subtitle %}Welcome !{% endblock %}
+{% block brand_subtitle %}Welcome!{% endblock %}
+
+{% block card_extra_classes %}auth-card--wide{% endblock %}
+
+{% block form_classes %}{% endblock %}
 
 {% block welcome_copy %}
     <p class="welcome-text">
-        Create your student account to start building and answering surveys tailored to your year and section.
+        Create your student account to start building and answering surveys.
     </p>
 {% endblock %}
 
 {% block form_fields %}
     <div class="field-group">
-        <label for="first_name">First Name</label>
-        <input id="first_name" name="first_name" type="text" class="pill-input" placeholder="Enter your first name">
+        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+        <input
+            id="{{ form.first_name.id_for_label }}"
+            name="first_name"
+            type="text"
+            class="pill-input"
+            placeholder="Enter your first name"
+            value="{{ form.first_name.value|default_if_none:'' }}"
+        >
+        {% if form.first_name.errors %}
+            <div class="field-error">{{ form.first_name.errors.0 }}</div>
+        {% endif %}
     </div>
     <div class="field-group">
-        <label for="last_name">Last Name</label>
-        <input id="last_name" name="last_name" type="text" class="pill-input" placeholder="Enter your last name">
+        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+        <input
+            id="{{ form.last_name.id_for_label }}"
+            name="last_name"
+            type="text"
+            class="pill-input"
+            placeholder="Enter your last name"
+            value="{{ form.last_name.value|default_if_none:'' }}"
+        >
+        {% if form.last_name.errors %}
+            <div class="field-error">{{ form.last_name.errors.0 }}</div>
+        {% endif %}
     </div>
     <div class="field-group">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" class="pill-input" placeholder="Create a password">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        <input
+            id="{{ form.password.id_for_label }}"
+            name="password"
+            type="password"
+            class="pill-input"
+            placeholder="Create a password"
+        >
+        {% if form.password.errors %}
+            <div class="field-error">{{ form.password.errors.0 }}</div>
+        {% endif %}
     </div>
     <div class="field-group">
-        <label for="confirm_password">Confirm Password</label>
-        <input id="confirm_password" name="confirm_password" type="password" class="pill-input" placeholder="Confirm your password">
+        <label for="{{ form.confirm_password.id_for_label }}">Confirm Password</label>
+        <input
+            id="{{ form.confirm_password.id_for_label }}"
+            name="confirm_password"
+            type="password"
+            class="pill-input"
+            placeholder="Confirm your password"
+        >
+        {% if form.confirm_password.errors %}
+            <div class="field-error">{{ form.confirm_password.errors.0 }}</div>
+        {% endif %}
     </div>
     <div class="field-group field-span-2">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" class="pill-input" placeholder="Enter your email address">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        <input
+            id="{{ form.email.id_for_label }}"
+            name="email"
+            type="email"
+            class="pill-input"
+            placeholder="Enter your email address"
+            value="{{ form.email.value|default_if_none:'' }}"
+        >
+        {% if form.email.errors %}
+            <div class="field-error">{{ form.email.errors.0 }}</div>
+        {% endif %}
     </div>
-    <div class="field-group field-span-2">
-        <label for="year_section">Year and Section</label>
-        <select id="year_section" name="year_section" class="pill-input pill-select">
-            <option value="" selected disabled>Select your year and section</option>
-            <option>BSIT 1A</option>
-            <option>BSIT 1B</option>
-            <option>BSIT 2A</option>
-            <option>BSIT 2B</option>
-            <option>BSIT 3A</option>
-            <option>BSIT 3B</option>
-            <option>BSIT 4A</option>
-            <option>BSIT 4B</option>
-        </select>
+    <div class="field-group field-span-2 field-group--split">
+        <div class="split-field">
+            <label for="{{ form.year.id_for_label }}">Year</label>
+            <select
+                id="{{ form.year.id_for_label }}"
+                name="year"
+                class="pill-input pill-select"
+            >
+            {% for value, label in form.year.field.choices %}
+                <option
+                    value="{{ value }}"
+                    {% if not value %}disabled{% endif %}
+                        {% if form.year.value == value %}
+                            selected
+                        {% elif not value and not form.year.value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form.year.errors %}
+                <div class="field-error">{{ form.year.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div class="split-field">
+            <label for="{{ form.section.id_for_label }}">Section</label>
+            <select
+                id="{{ form.section.id_for_label }}"
+                name="section"
+                class="pill-input pill-select"
+            >
+            {% for value, label in form.section.field.choices %}
+                <option
+                    value="{{ value }}"
+                    {% if not value %}disabled{% endif %}
+                        {% if form.section.value == value %}
+                            selected
+                        {% elif not value and not form.section.value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form.section.errors %}
+                <div class="field-error">{{ form.section.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div class="split-field">
+            <label for="{{ form.group.id_for_label }}">Group</label>
+            <select
+                id="{{ form.group.id_for_label }}"
+                name="group"
+                class="pill-input pill-select"
+            >
+            {% for value, label in form.group.field.choices %}
+                <option
+                    value="{{ value }}"
+                    {% if not value %}disabled{% endif %}
+                        {% if form.group.value == value %}
+                            selected
+                        {% elif not value and not form.group.value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form.group.errors %}
+                <div class="field-error">{{ form.group.errors.0 }}</div>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}
 

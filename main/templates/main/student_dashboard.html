@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Desk · ADELSURVEY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f2fbf8;
+            min-height: 100vh;
+            color: #163c35;
+        }
+
+        header {
+            background: linear-gradient(135deg, #27b59c 0%, #179277 100%);
+            color: #f1fbf7;
+            padding: 1.6rem clamp(1rem, 6vw, 4rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 12px 30px rgba(12, 87, 70, 0.25);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(10, 61, 52, 0.16);
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+        }
+
+        .logout-link {
+            color: inherit;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        main {
+            padding: clamp(1.5rem, 6vw, 3.8rem);
+            display: grid;
+            gap: 2rem;
+        }
+
+        .welcome-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2.4rem clamp(1.5rem, 5vw, 3.5rem);
+            box-shadow: 0 20px 45px rgba(15, 70, 60, 0.12);
+            display: grid;
+            gap: 1rem;
+        }
+
+        .welcome-card h2 {
+            margin: 0;
+            font-size: clamp(1.3rem, 3.5vw, 1.85rem);
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .link-card {
+            background: linear-gradient(140deg, rgba(38, 176, 151, 0.16) 0%, rgba(20, 115, 100, 0.16) 100%);
+            border: 1px solid rgba(27, 135, 114, 0.25);
+            border-radius: 18px;
+            padding: 1.2rem 1.1rem;
+            text-decoration: none;
+            color: inherit;
+            display: grid;
+            gap: 0.45rem;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .link-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(35, 165, 139, 0.45);
+            box-shadow: 0 14px 26px rgba(15, 70, 60, 0.2);
+        }
+
+        .link-card span {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        footer {
+            padding: 1.2rem;
+            text-align: center;
+            color: rgba(14, 56, 47, 0.6);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ADELSURVEY</h1>
+        <div class="pill">
+            {{ profile.user.first_name }} {{ profile.user.last_name }} · {{ profile.year_section }}
+            <a class="logout-link" href="{% url 'logout' %}">Logout</a>
+        </div>
+    </header>
+    <main>
+        <section class="welcome-card">
+            <h2>Welcome back, {{ profile.user.first_name }}!</h2>
+            <p>
+                You can review surveys assigned to <strong>{{ profile.year_section }}</strong>, track your submissions, and prepare new responses.
+            </p>
+            <div class="quick-links">
+                <a class="link-card" href="#">
+                    <span>Active Surveys</span>
+                    <small>View and answer surveys awaiting your response.</small>
+                </a>
+                <a class="link-card" href="#">
+                    <span>My Responses</span>
+                    <small>See the surveys you've completed so far.</small>
+                </a>
+                <a class="link-card" href="#">
+                    <span>Announcements</span>
+                    <small>Stay updated with recent advisories from your teachers.</small>
+                </a>
+            </div>
+        </section>
+    </main>
+    <footer>&copy; {{ profile.user.first_name|default:"Student" }} · ADELSURVEY Student Portal</footer>
+</body>
+</html>

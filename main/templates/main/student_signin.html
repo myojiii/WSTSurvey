@@ -6,7 +6,7 @@
 
 {% block welcome_copy %}
     <p class="welcome-text">
-        Sign in with your student credentials to continue where you left off and respond to the latest surveys.
+        Sign in with your ADELSURVEY credentials.
     </p>
 {% endblock %}
 
@@ -14,12 +14,31 @@
 
 {% block form_fields %}
     <div class="field-group">
-        <label for="signin_email">Email Address</label>
-        <input id="signin_email" name="email" type="email" class="pill-input" placeholder="Enter your email">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        <input
+            id="{{ form.email.id_for_label }}"
+            name="email"
+            type="email"
+            class="pill-input"
+            placeholder="Enter your email"
+            value="{{ form.email.value|default_if_none:'' }}"
+        >
+        {% if form.email.errors %}
+            <div class="field-error">{{ form.email.errors.0 }}</div>
+        {% endif %}
     </div>
     <div class="field-group">
-        <label for="signin_password">Password</label>
-        <input id="signin_password" name="password" type="password" class="pill-input" placeholder="Enter your password">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        <input
+            id="{{ form.password.id_for_label }}"
+            name="password"
+            type="password"
+            class="pill-input"
+            placeholder="Enter your password"
+        >
+        {% if form.password.errors %}
+            <div class="field-error">{{ form.password.errors.0 }}</div>
+        {% endif %}
     </div>
 {% endblock %}
 

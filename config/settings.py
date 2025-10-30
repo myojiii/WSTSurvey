@@ -121,3 +121,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Default teacher account configuration
+DEFAULT_TEACHER_EMAIL = "teacher@adelsurvey.com"
+DEFAULT_TEACHER_FIRST_NAME = "ADEL"
+DEFAULT_TEACHER_LAST_NAME = "Mentor"
+DEFAULT_TEACHER_PASSWORD = "Teach3rPass!"

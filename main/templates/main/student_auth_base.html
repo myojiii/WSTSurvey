@@ -125,6 +125,10 @@
             text-align: center;
         }
 
+        .auth-card--wide {
+            width: min(720px, 100%);
+        }
+
         .auth-card::after {
             content: "";
             position: absolute;
@@ -207,11 +211,31 @@
             gap: 8px;
         }
 
+        .field-group--split {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .field-group--split .split-field {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+
         .field-group label {
             font-size: 0.85rem;
             font-weight: 600;
             color: rgba(17, 71, 63, 0.82);
             margin-left: 12px;
+        }
+
+        .field-group--split .split-field label {
+            margin-left: 10px;
+            text-align: left;
         }
 
         .pill-input {
@@ -239,9 +263,10 @@
 
         .pill-select {
             appearance: none;
+            padding-right: 3.4rem;
             background-image: linear-gradient(45deg, transparent 50%, #157b6c 50%), linear-gradient(135deg, #157b6c 50%, transparent 50%), linear-gradient(to right, rgba(17, 82, 70, 0.18), rgba(17, 82, 70, 0.18));
-            background-position: calc(100% - 34px) calc(50% - 3px), calc(100% - 24px) calc(50% - 3px), calc(100% - 60px) 50%;
-            background-size: 12px 12px, 12px 12px, 1px 58%;
+            background-position: calc(100% - 30px) 50%, calc(100% - 18px) 50%, calc(100% - 54px) 50%;
+            background-size: 10px 10px, 10px 10px, 1px 58%;
             background-repeat: no-repeat;
         }
 
@@ -289,10 +314,32 @@
             width: 100%;
         }
 
+        form.auth-form.auth-form--single .form-messages {
+            grid-column: auto;
+        }
+
         .form-footnote {
             color: rgba(17, 73, 65, 0.85);
             font-size: 0.9rem;
             margin: 0;
+        }
+
+        .form-messages {
+            grid-column: span 2;
+            background: rgba(255, 255, 255, 0.82);
+            border-radius: 18px;
+            padding: 0.75rem 1.1rem;
+            border: 1.5px solid rgba(194, 46, 46, 0.18);
+            color: #9d2e2e;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .field-error {
+            margin-left: 14px;
+            font-size: 0.78rem;
+            color: #a02e2e;
+            font-weight: 500;
         }
 
         .form-link {
@@ -323,8 +370,16 @@
                 grid-column: auto;
             }
 
+            form.auth-form .form-messages {
+                grid-column: auto;
+            }
+
             .primary-button {
                 grid-column: unset;
+            }
+
+            .field-group--split {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -336,7 +391,7 @@
             <a href="{% url 'student_signin' %}" class="switch-link {% if active_view == 'signin' %}is-active{% endif %}">login</a>
             <a href="{% url 'student_signup' %}" class="switch-link {% if active_view == 'signup' %}is-active{% endif %}">signup</a>
         </nav>
-        <section class="auth-card">
+        <section class="auth-card {% block card_extra_classes %}{% endblock %}">
             <div class="logo-mark" aria-hidden="true">
                 <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                     <rect x="18" y="25" width="84" height="62" rx="12" fill="#0f6c60"/>
@@ -355,6 +410,13 @@
             {% block welcome_copy %}{% endblock %}
             <form class="auth-form {% block form_classes %}{% endblock %}" action="#" method="post" novalidate>
                 {% csrf_token %}
+                {% if form and form.non_field_errors %}
+                    <div class="form-messages">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 {% block form_fields %}{% endblock %}
                 <button type="submit" class="primary-button">
                     <span>{% block submit_label %}Continue{% endblock %}</span>

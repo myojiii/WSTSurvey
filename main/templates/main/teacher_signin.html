@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Access · ADELSURVEY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(160deg, #1d544c 0%, #0e2a38 100%);
+            min-height: 100vh;
+            color: #f3f7f5;
+            display: grid;
+            place-items: center;
+        }
+
+        .teacher-card {
+            width: min(440px, 92vw);
+            background: rgba(13, 58, 55, 0.82);
+            border-radius: 24px;
+            padding: 2.8rem 2.4rem;
+            box-shadow: 0 32px 70px rgba(8, 22, 24, 0.45);
+            backdrop-filter: blur(8px);
+        }
+
+        .teacher-card h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .teacher-card p {
+            margin: 0.75rem 0 2rem;
+            color: rgba(219, 235, 232, 0.85);
+            line-height: 1.55;
+            font-size: 0.98rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 0.5rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(18, 148, 132, 0.22);
+            border: 1px solid rgba(55, 198, 173, 0.25);
+            color: #c9ffef;
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.2rem;
+        }
+
+        form {
+            display: grid;
+            gap: 18px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+            color: rgba(228, 245, 243, 0.94);
+        }
+
+        input {
+            border-radius: 14px;
+            border: 1.5px solid rgba(40, 198, 174, 0.25);
+            background: rgba(0, 0, 0, 0.25);
+            padding: 0.85rem 1rem;
+            color: #f4faf8;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus {
+            border-color: rgba(57, 220, 193, 0.6);
+            box-shadow: 0 0 0 3px rgba(45, 188, 166, 0.28);
+        }
+
+        .form-error {
+            background: rgba(201, 72, 72, 0.18);
+            border-left: 3px solid rgba(231, 109, 109, 0.65);
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #ffb6b6;
+        }
+
+        .field-error {
+            font-size: 0.78rem;
+            color: #ffb6b6;
+            margin-top: -0.6rem;
+        }
+
+        button {
+            margin-top: 0.6rem;
+            background: linear-gradient(135deg, #28c6b1 0%, #16977f 100%);
+            color: #083632;
+            border: none;
+            border-radius: 16px;
+            padding: 0.9rem 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            box-shadow: 0 18px 30px rgba(13, 84, 76, 0.35);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 34px rgba(13, 84, 76, 0.42);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 16px 24px rgba(12, 71, 65, 0.4);
+        }
+
+        @media (max-width: 520px) {
+            .teacher-card {
+                padding: 2.4rem 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="teacher-card">
+        <h1>Teacher Access</h1>
+        <span class="info-pill">Default account only</span>
+        <p>
+            Use the dedicated teacher credentials below. This account is provisioned automatically—no sign-up required.
+        </p>
+        <p><strong>Email:</strong> {{ teacher_email }}</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="form-error">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div>
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                <input
+                    id="{{ form.email.id_for_label }}"
+                    name="email"
+                    type="email"
+                    placeholder="Enter the teacher email"
+                    value="{{ form.email.value|default_if_none:'' }}"
+                >
+                {% if form.email.errors %}
+                    <div class="field-error">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                <input
+                    id="{{ form.password.id_for_label }}"
+                    name="password"
+                    type="password"
+                    placeholder="Enter the teacher password"
+                >
+                {% if form.password.errors %}
+                    <div class="field-error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+            <button type="submit">Sign In</button>
+        </form>
+    </section>
+</body>
+</html>
