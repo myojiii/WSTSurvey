@@ -4,158 +4,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Desk · ADELSURVEY</title>
+    <title>Teacher Dashboard · ADELSURVEY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --sidebar-highlight: #d4f4e7;
+            --sidebar-icon: #0f7b63;
+            --sidebar-muted: #6d8077;
+            --border-soft: #d7eae2;
+            --text-dark: #243f38;
+            --accent: #209377;
+            --accent-soft: rgba(32, 147, 119, 0.18);
+            --card-bg: #f6fffb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
             margin: 0;
             padding: 0;
             font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #10161d;
+            background: #eef6f4;
             min-height: 100vh;
-            color: #f4f7f9;
+            color: var(--text-dark);
+        }
+
+        .global-header {
+            position: sticky;
+            top: 0;
+            z-index: 120;
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            color: #f6fbfe;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 0.95rem 2.2rem;
+            box-shadow: 0 12px 24px rgba(15, 52, 73, 0.25);
+        }
+
+        .global-header__toggle {
+            border: none;
+            background: rgba(7, 61, 44, 0.25);
+            color: #f6fbfe;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
             display: grid;
             place-items: center;
-            padding: clamp(2rem, 6vw, 4rem) 1.5rem;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
         }
 
-        .teacher-panel {
-            width: min(900px, 100%);
-            background: linear-gradient(135deg, rgba(36, 129, 115, 0.35) 0%, rgba(19, 57, 77, 0.35) 100%);
-            border-radius: 28px;
-            padding: clamp(2.2rem, 5vw, 3rem);
-            box-shadow: 0 35px 80px rgba(6, 18, 26, 0.55);
-            backdrop-filter: blur(12px);
-            display: grid;
-            gap: 1.8rem;
+        .global-header__toggle:hover {
+            background: rgba(7, 61, 44, 0.38);
         }
 
-        header {
+        .global-header__brand {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
+            flex-direction: column;
+            line-height: 1.2;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: clamp(1.6rem, 4.5vw, 2.4rem);
-            font-weight: 700;
-            letter-spacing: 0.08em;
+        .brand-title {
+            font-size: 1.2rem;
+            letter-spacing: 0.18em;
         }
 
-        .badge {
-            padding: 0.45rem 1rem;
-            border-radius: 999px;
-            background: rgba(27, 198, 173, 0.22);
-            border: 1px solid rgba(29, 197, 170, 0.35);
-            font-size: 0.85rem;
-            letter-spacing: 0.03em;
-        }
-
-        .header-actions {
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logout-link {
-            color: inherit;
-            text-decoration: underline;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.1rem;
-        }
-
-        .summary-card {
-            background: rgba(11, 43, 52, 0.55);
-            border: 1px solid rgba(38, 158, 140, 0.28);
-            border-radius: 20px;
-            padding: 1.3rem 1.1rem;
-            display: grid;
-            gap: 0.4rem;
-        }
-
-        .summary-card span {
-            font-size: 0.82rem;
+        .brand-sub {
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(199, 237, 230, 0.7);
+            letter-spacing: 0.24em;
+            color: rgba(237, 246, 255, 0.75);
         }
 
-        .summary-card strong {
-            font-size: 1.8rem;
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.25s ease;
+        }
+
+        .layout.is-collapsed {
+            grid-template-columns: 0 1fr;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            padding: 2rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 12px 0 35px rgba(22, 72, 64, 0.1);
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            min-height: calc(100vh - 78px);
+        }
+
+        .layout.is-collapsed .sidebar {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar__top {
+            display: grid;
+            gap: 1.7rem;
+        }
+
+        .profile-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: #1bb28d;
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .profile-card strong {
+            font-size: 1.05rem;
+            letter-spacing: 0.05em;
+            display: block;
+        }
+
+        .profile-card span {
+            font-size: 0.83rem;
+            color: var(--sidebar-muted);
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            border-radius: 18px;
+            padding: 0.95rem 1.05rem;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-highlight);
+            box-shadow: inset 0 0 0 1px rgba(32, 147, 119, 0.28);
+        }
+
+        .nav-item:hover {
+            transform: translateX(5px);
+            background: rgba(32, 147, 119, 0.12);
+        }
+
+        .nav-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: var(--accent-soft);
+            display: grid;
+            place-items: center;
+            color: var(--accent);
+            font-size: 1rem;
             font-weight: 600;
         }
 
-        .actions {
-            display: grid;
-            gap: 0.85rem;
+        .nav-item span {
+            font-weight: 600;
         }
 
-        .action-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            border-radius: 18px;
-            padding: 0.95rem 1.1rem;
-            background: rgba(16, 146, 126, 0.28);
-            border: 1px solid rgba(29, 197, 170, 0.32);
+        .sidebar__bottom {
+            margin-top: 2.6rem;
+            display: grid;
+            gap: 0.9rem;
+            font-size: 0.9rem;
+            color: var(--sidebar-muted);
+        }
+
+        .sidebar__bottom a {
             color: inherit;
             text-decoration: none;
             font-weight: 600;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .action-button:hover {
+        .sidebar__bottom a.logout {
+            color: var(--accent);
+        }
+
+        .content {
+            padding: 2.8rem 3.2rem 3.4rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .sidebar-toggle button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 18px 30px rgba(12, 90, 78, 0.35);
         }
 
-        footer {
-            text-align: center;
-            font-size: 0.82rem;
-            color: rgba(197, 229, 221, 0.55);
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 26px;
+            padding: 1.2rem 1.8rem;
+            border: 1.5px solid rgba(32, 147, 119, 0.2);
+            box-shadow: 0 18px 45px rgba(25, 94, 78, 0.08);
+        }
+
+        .content-header h1 {
+            margin: 0;
+            font-size: clamp(1.9rem, 4.5vw, 2.3rem);
+            color: var(--text-dark);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pill-tabs {
+            display: inline-flex;
+            background: #e0f7ee;
+            padding: 0.35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(32, 147, 119, 0.3);
+            box-shadow: inset 0 2px 5px rgba(1, 80, 57, 0.1);
+        }
+
+        .pill-tabs button {
+            border: none;
+            background: transparent;
+            padding: 0.55rem 1.4rem;
+            border-radius: 999px;
+            font-weight: 600;
+            color: rgba(36, 70, 61, 0.85);
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .pill-tabs button.active {
+            background: #ffffff;
+            color: var(--accent);
+            box-shadow: 0 6px 16px rgba(16, 88, 70, 0.18);
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(32, 147, 119, 0.28);
+            display: grid;
+            place-items: center;
+            background: #ffffff;
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .primary-action {
+            border: none;
+            border-radius: 16px;
+            padding: 0.75rem 1.6rem;
+            background: linear-gradient(135deg, #1dae8b 0%, #157b63 100%);
+            color: #f9fffc;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            box-shadow: 0 18px 25px rgba(21, 123, 99, 0.25);
+        }
+
+        .module-card {
+            background: #ffffff;
+            border-radius: 26px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(29, 102, 82, 0.08);
+            border: 1.5px solid rgba(32, 147, 119, 0.18);
+        }
+
+        .module-grid {
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        .module-block {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.6rem 1.8rem;
+            border: 1.5px solid rgba(32, 147, 119, 0.18);
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .module-block h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+        }
+
+        .module-block p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: rgba(36, 70, 61, 0.74);
+        }
+
+        .module-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .selector-button {
+            border: 1.5px solid rgba(32, 147, 119, 0.35);
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 0.65rem 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .layout.is-collapsed .profile-card div,
+        .layout.is-collapsed .nav-item span,
+        .layout.is-collapsed .sidebar__bottom {
+            opacity: 0;
+        }
+
+        @media (max-width: 1080px) {
+            .layout {
+                grid-template-columns: 240px 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                flex-direction: row;
+                align-items: center;
+                gap: 1.5rem;
+                border-bottom: 1px solid rgba(32, 147, 119, 0.18);
+                box-shadow: none;
+            }
+
+            .sidebar__bottom {
+                display: none;
+            }
+
+            .content {
+                padding: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <section class="teacher-panel">
-        <header>
-            <h1>ADELSURVEY Teacher Desk</h1>
-            <div class="header-actions">
-                <span class="badge">{{ teacher.get_full_name|default:"Teacher" }}</span>
-                <a class="logout-link" href="{% url 'logout' %}">Logout</a>
-            </div>
-        </header>
-        <div class="summary">
-            <div class="summary-card">
-                <span>Active Surveys</span>
-                <strong>3</strong>
-            </div>
-            <div class="summary-card">
-                <span>Pending Reviews</span>
-                <strong>5</strong>
-            </div>
-            <div class="summary-card">
-                <span>Published Results</span>
-                <strong>12</strong>
-            </div>
+    <header class="global-header">
+        <button type="button" id="sidebar-toggle" class="global-header__toggle" aria-label="Toggle sidebar">☰</button>
+        <div class="global-header__brand">
+            <strong class="brand-title">ADELSURVEY</strong>
+            <span class="brand-sub">Teacher Dashboard</span>
         </div>
-        <div class="actions">
-            <a href="#" class="action-button">Create New Survey</a>
-            <a href="#" class="action-button">Review Student Responses</a>
-            <a href="#" class="action-button">Export Reports</a>
-        </div>
-        <footer>Default teacher account · ADELSURVEY</footer>
-    </section>
+    </header>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar__top">
+                <div class="profile-card">
+                    <div class="avatar">{{ teacher.first_name|default:"T"|slice:":1" }}</div>
+                    <div>
+                        <strong>{{ teacher.last_name|upper }}</strong>
+                        <span>Instructor · ADELSURVEY</span>
+                    </div>
+                </div>
+                <nav class="nav-list">
+                    {% for item in nav_items %}
+                        <a class="nav-item {% if active_page == item.slug %}active{% endif %}" href="{% if item.slug == 'new' %}{% url 'teacher_dashboard' %}{% else %}{% url 'teacher_dashboard_page' item.slug %}{% endif %}">
+                            <div class="nav-icon">{{ item.icon }}</div>
+                            <span>{{ item.label }}</span>
+                        </a>
+                    {% endfor %}
+                </nav>
+                <div class="sidebar__bottom">
+                    <div>Need help? <a href="#">Help Center</a></div>
+                    <a class="logout" href="{% url 'logout' %}">Log out</a>
+                </div>
+            </div>
+        </aside>
+        <main class="content">
+            <header class="content-header">
+                <h1>
+                    {% if active_page == 'assigned' %}
+                        Assigned Surveys
+                    {% elif active_page == 'take' %}
+                        Take Survey
+                    {% elif active_page == 'history' %}
+                        Responses History
+                    {% else %}
+                        New Survey
+                    {% endif %}
+                </h1>
+                {% if active_page == 'new' %}
+                    <div class="header-controls">
+                        <div class="pill-tabs">
+                            <button class="active" type="button">Questions</button>
+                            <button type="button">Settings</button>
+                        </div>
+                        <button class="icon-button" type="button" aria-label="Preview">👁</button>
+                        <button class="icon-button" type="button" aria-label="More">⋮</button>
+                        <button class="primary-action" type="button">Publish</button>
+                    </div>
+                {% else %}
+                    <div style="width:180px;"></div>
+                {% endif %}
+            </header>
+
+            {% if active_page == 'new' %}
+                <section class="module-card">
+                    <div class="module-grid">
+                        <div class="module-block">
+                            <div class="module-inline">
+                                <h2>Section Assigned</h2>
+                                <button class="selector-button" type="button">Choose Section ▾</button>
+                            </div>
+                            <p>Assign a section or group to receive and complete this survey.</p>
+                        </div>
+                        <div class="module-block">
+                            <div class="module-inline">
+                                <h2>Due Dates</h2>
+                                <button class="selector-button" type="button">Select Due Date ▾</button>
+                            </div>
+                            <p>Define the deadline window when respondents must complete the survey.</p>
+                        </div>
+                        <div class="module-block">
+                            <h2>Overview</h2>
+                            <p>This space will showcase analytics, response progress, and other survey insights once data begins to arrive.</p>
+                        </div>
+                    </div>
+                </section>
+            {% else %}
+                <section class="module-card" style="display:flex; align-items:center; justify-content:center; text-align:center; min-height:240px;">
+                    <div>
+                        <h2 style="margin:0 0 0.5rem;">Coming Soon</h2>
+                        <p style="margin:0; color:rgba(36,70,61,0.74);">We are still polishing the {{ active_page|title }} workspace. Your controls will appear here shortly.</p>
+                    </div>
+                </section>
+            {% endif %}
+        </main>
+    </div>
+    <script>
+        (function() {
+            const layout = document.querySelector('.layout');
+            const toggle = document.getElementById('sidebar-toggle');
+            if (!layout || !toggle) {
+                return;
+            }
+            toggle.addEventListener('click', function() {
+                layout.classList.toggle('is-collapsed');
+            });
+        }());
+    </script>
 </body>
 </html>

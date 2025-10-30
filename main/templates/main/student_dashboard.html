@@ -4,141 +4,487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Desk · ADELSURVEY</title>
+    <title>Assigned Surveys · ADELSURVEY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --sidebar-highlight: #d4f4e7;
+            --sidebar-icon: #1aa885;
+            --text-muted: #6a7f75;
+            --border-soft: #d7eae2;
+            --card-bg: #f6fffb;
+            --primary: #1d9b7f;
+            --primary-dark: #187f6a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
             margin: 0;
             padding: 0;
             font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f2fbf8;
+            background: #f1f5f4;
             min-height: 100vh;
-            color: #163c35;
+            color: #203833;
         }
 
-        header {
-            background: linear-gradient(135deg, #27b59c 0%, #179277 100%);
-            color: #f1fbf7;
-            padding: 1.6rem clamp(1rem, 6vw, 4rem);
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.25s ease;
+        }
+
+        .layout.is-collapsed {
+            grid-template-columns: 0 1fr;
+        }
+
+        .global-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            color: #f6fbfe;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 12px 30px rgba(12, 87, 70, 0.25);
+            gap: 1.2rem;
+            padding: 0.9rem 2rem;
+            box-shadow: 0 10px 24px rgba(15, 52, 73, 0.25);
         }
 
-        header h1 {
-            margin: 0;
-            font-size: clamp(1.4rem, 4vw, 2rem);
-            letter-spacing: 0.05em;
+        .global-header__toggle {
+            border: none;
+            background: rgba(7, 61, 44, 0.25);
+            color: #f6fbfe;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .global-header__toggle:hover {
+            background: rgba(7, 61, 44, 0.38);
+        }
+
+        .global-header__brand {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            letter-spacing: 0.18em;
+        }
+
+        .brand-sub {
+            font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 0.24em;
+            color: rgba(237, 246, 255, 0.75);
         }
 
-        .pill {
-            display: inline-flex;
+        .sidebar {
+            background: var(--sidebar-bg);
+            padding: 2rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 12px 0 35px rgba(22, 72, 64, 0.08);
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            position: relative;
+            min-height: calc(100vh - 70px);
+        }
+
+        .layout.is-collapsed .sidebar {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar__top {
+            display: grid;
+            gap: 1.6rem;
+        }
+
+        .profile-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.85rem;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: #1aa885;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .profile-card strong {
+            font-size: 1rem;
+            display: block;
+        }
+
+        .profile-card span {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .nav-item {
+            display: flex;
             align-items: center;
             gap: 0.75rem;
-            background: rgba(10, 61, 52, 0.16);
-            padding: 0.45rem 0.9rem;
-            border-radius: 999px;
-            font-size: 0.85rem;
+            padding: 0.9rem 1rem;
+            border-radius: 16px;
+            color: #203833;
+            text-decoration: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .logout-link {
+        .nav-item span {
+            font-weight: 600;
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-highlight);
+            box-shadow: inset 0 0 0 1px rgba(26, 168, 133, 0.25);
+        }
+
+        .nav-item:hover {
+            transform: translateX(4px);
+            background: rgba(26, 168, 133, 0.12);
+        }
+
+        .nav-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: rgba(26, 168, 133, 0.12);
+            display: grid;
+            place-items: center;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 0.95rem;
+        }
+
+        .sidebar__bottom {
+            margin-top: 2.4rem;
+            display: grid;
+            gap: 0.85rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .sidebar__bottom a {
+            text-decoration: none;
             color: inherit;
             font-weight: 600;
-            text-decoration: underline;
         }
 
-        main {
-            padding: clamp(1.5rem, 6vw, 3.8rem);
+        .sidebar__bottom a.logout {
+            color: var(--primary-dark);
+        }
+
+        .content {
+            padding: 2.6rem 3.2rem 3.2rem;
             display: grid;
             gap: 2rem;
         }
 
-        .welcome-card {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 2.4rem clamp(1.5rem, 5vw, 3.5rem);
-            box-shadow: 0 20px 45px rgba(15, 70, 60, 0.12);
-            display: grid;
-            gap: 1rem;
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .welcome-card h2 {
+        .content-header h1 {
             margin: 0;
-            font-size: clamp(1.3rem, 3.5vw, 1.85rem);
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #1f3f37;
         }
 
-        .quick-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.2rem;
-            margin-top: 1rem;
-        }
-
-        .link-card {
-            background: linear-gradient(140deg, rgba(38, 176, 151, 0.16) 0%, rgba(20, 115, 100, 0.16) 100%);
-            border: 1px solid rgba(27, 135, 114, 0.25);
-            border-radius: 18px;
-            padding: 1.2rem 1.1rem;
-            text-decoration: none;
-            color: inherit;
-            display: grid;
-            gap: 0.45rem;
-            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        }
-
-        .link-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(35, 165, 139, 0.45);
-            box-shadow: 0 14px 26px rgba(15, 70, 60, 0.2);
-        }
-
-        .link-card span {
+        .filter-select {
+            position: relative;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            min-width: 140px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
             font-weight: 600;
-            font-size: 1.05rem;
+            color: #27493f;
+            border: 1px solid rgba(31, 82, 68, 0.2);
+            cursor: pointer;
         }
 
-        footer {
-            padding: 1.2rem;
-            text-align: center;
-            color: rgba(14, 56, 47, 0.6);
+        .table-card {
+            background: #ffffff;
+            border-radius: 26px;
+            box-shadow: 0 25px 60px rgba(20, 80, 70, 0.08);
+            padding: 2rem;
+            display: grid;
+            gap: 1.4rem;
+        }
+
+        .table-card__inner {
+            border: 2px solid rgba(33, 150, 115, 0.2);
+            border-radius: 22px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(214, 245, 234, 0.55) 0%, rgba(234, 252, 243, 0.55) 100%);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 1.6rem;
+            left: 1.6rem;
+            z-index: 50;
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
+
+        .sidebar-toggle button {
+            border: none;
+            background: #ffffff;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            color: var(--primary);
+            box-shadow: 0 12px 24px rgba(23, 90, 76, 0.18);
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-toggle button:hover {
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            padding: 1rem;
+        }
+
+        thead th {
+            text-align: left;
             font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(33, 80, 69, 0.85);
+            padding: 0.5rem 1.5rem;
+        }
+
+        tbody tr {
+            background: #ffffff;
+            border-radius: 18px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(19, 68, 59, 0.2);
+        }
+
+        tbody td {
+            padding: 1.1rem 1.5rem;
+            font-size: 0.95rem;
+            color: #2e5248;
+        }
+
+        tbody td:first-child {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .action-link {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1080px) {
+            .layout {
+                grid-template-columns: 240px 1fr;
+            }
+        }
+
+        @media (max-width: 880px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                flex-direction: row;
+                gap: 1.5rem;
+                align-items: center;
+                box-shadow: none;
+                border-bottom: 1px solid rgba(26, 168, 133, 0.18);
+            }
+
+            .sidebar__bottom {
+                display: none;
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>ADELSURVEY</h1>
-        <div class="pill">
-            {{ profile.user.first_name }} {{ profile.user.last_name }} · {{ profile.year_section }}
-            <a class="logout-link" href="{% url 'logout' %}">Logout</a>
+    <header class="global-header">
+        <button type="button" id="sidebar-toggle" class="global-header__toggle" aria-label="Toggle sidebar">☰</button>
+        <div class="global-header__brand">
+            <strong class="brand-title">ADELSURVEY</strong>
+            <span class="brand-sub">Student Portal</span>
         </div>
     </header>
-    <main>
-        <section class="welcome-card">
-            <h2>Welcome back, {{ profile.user.first_name }}!</h2>
-            <p>
-                You can review surveys assigned to <strong>{{ profile.year_section }}</strong>, track your submissions, and prepare new responses.
-            </p>
-            <div class="quick-links">
-                <a class="link-card" href="#">
-                    <span>Active Surveys</span>
-                    <small>View and answer surveys awaiting your response.</small>
-                </a>
-                <a class="link-card" href="#">
-                    <span>My Responses</span>
-                    <small>See the surveys you've completed so far.</small>
-                </a>
-                <a class="link-card" href="#">
-                    <span>Announcements</span>
-                    <small>Stay updated with recent advisories from your teachers.</small>
-                </a>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar__top">
+                <div class="profile-card">
+                    <div class="avatar">{{ profile.user.first_name|default:"S"|slice:":1" }}</div>
+                    <div>
+                        <strong>{{ profile.user.last_name|upper }}</strong>
+                        <span>Student · {{ profile.year_section }}</span>
+                    </div>
+                </div>
+                <nav class="nav-list">
+                    {% for item in nav_items %}
+                        <a class="nav-item {% if active_page == item.slug %}active{% endif %}" href="{% if item.slug == 'assigned' %}{% url 'student_dashboard' %}{% else %}{% url 'student_dashboard_page' item.slug %}{% endif %}">
+                            <div class="nav-icon">{{ item.icon }}</div>
+                            <span>{{ item.label }}</span>
+                        </a>
+                    {% endfor %}
+                </nav>
+                <div class="sidebar__bottom">
+                    <div>Need a hand? <a href="#">Help Center</a></div>
+                    <a class="logout" href="{% url 'logout' %}">Log out</a>
+                </div>
             </div>
-        </section>
-    </main>
-    <footer>&copy; {{ profile.user.first_name|default:"Student" }} · ADELSURVEY Student Portal</footer>
+        </aside>
+        <main class="content">
+            <div class="content-header">
+                <h1>
+                    {% if active_page == 'assigned' %}
+                        Assigned Surveys
+                    {% elif active_page == 'responses' %}
+                        My Responses
+                    {% endif %}
+                </h1>
+                {% if active_page == 'assigned' %}
+                    <div class="filter-select">
+                        ALL TIME
+                        <span>▾</span>
+                    </div>
+                {% else %}
+                    <div style="width:140px;"></div>
+                {% endif %}
+            </div>
+            {% if active_page == 'assigned' %}
+                <section class="table-card">
+                    <div class="table-card__inner">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Survey Title</th>
+                                    <th>Assigned By</th>
+                                    <th>Date Submitted</th>
+                                    <th>Due Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for survey in assigned_surveys %}
+                                    <tr>
+                                        <td>{{ survey.id }}</td>
+                                        <td>{{ survey.title }}</td>
+                                        <td>{{ survey.assigned_by }}</td>
+                                        <td>{{ survey.date_submitted }}</td>
+                                        <td>{{ survey.due_date }}</td>
+                                        <td><a href="#" class="action-link">View Response</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% elif active_page == 'responses' %}
+                <section class="table-card">
+                    <div class="table-card__inner" style="padding: 2.6rem;">
+                        {% if response_history %}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Survey</th>
+                                        <th>Date Submitted</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for response in response_history %}
+                                        <tr>
+                                            <td>{{ response.survey }}</td>
+                                            <td>{{ response.submitted }}</td>
+                                            <td>{{ response.status }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div style="text-align:center; padding: 2rem;">
+                                <h2 style="margin:0 0 0.5rem;">No Responses Yet</h2>
+                                <p style="margin:0; color:#497165;">When you submit surveys, they will appear here for quick reference.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            {% endif %}
+        </main>
+    </div>
+    <script>
+        (function() {
+            const layout = document.querySelector('.layout');
+            const toggle = document.getElementById('sidebar-toggle');
+            if (!layout || !toggle) {
+                return;
+            }
+            toggle.addEventListener('click', function() {
+                layout.classList.toggle('is-collapsed');
+            });
+        }());
+    </script>
 </body>
 </html>

@@ -125,18 +125,69 @@ def student_signup(request):
 
 
 @login_required(login_url="student_signin")
-def student_dashboard(request):
+def student_dashboard(request, page="assigned"):
     """Landing page for authenticated students."""
     if not hasattr(request.user, "student_profile"):
         if request.user.username == _teacher_username():
             return redirect("teacher_dashboard")
         return redirect("student_signin")
 
+    page = page.lower()
     profile = request.user.student_profile
+    assigned_surveys = [
+        {
+            "id": idx,
+            "title": title,
+            "assigned_by": author,
+            "date_submitted": submitted,
+            "due_date": due,
+        }
+        for idx, (title, author, submitted, due) in enumerate(
+            [
+                ("Facilities Feedback", "Reymark Mendoza", "2025-10-15", "2025-10-24"),
+                ("Student Satisfaction Survey", "Jhen Serrano", "2025-10-08", "2025-10-21"),
+                ("Midterm Course Evaluation", "Jelaine Absalon", "2025-10-02", "2025-10-10"),
+                ("End-Term Survey", "Maurice Joy Ramos", "2025-09-06", "2025-10-03"),
+                ("Teacher Evaluation", "Mr. Dela Rosa", "2025-08-24", "2025-09-04"),
+                ("Student Wellness Survey", "Abi Castilla", "2025-08-21", "2025-09-01"),
+                ("Peer Evaluation", "Lawrence Velasco", "2025-08-17", "2025-08-29"),
+                ("Class Feedback", "Duke Valencia", "2025-07-15", "2025-07-27"),
+            ],
+            start=1,
+        )
+    ]
+
+    response_history = [
+        {
+            "survey": "Facilities Feedback",
+            "submitted": "2025-10-15",
+            "status": "Submitted",
+        },
+        {
+            "survey": "Student Satisfaction Survey",
+            "submitted": "2025-10-08",
+            "status": "Submitted",
+        },
+    ]
+
+    if page not in {"assigned", "responses"}:
+        page = "assigned"
+
+    student_nav = [
+        {"slug": "assigned", "label": "Assigned Surveys", "icon": "📋"},
+        {"slug": "responses", "label": "My Responses", "icon": "🗂"},
+    ]
+
     return render(
         request,
         "main/student_dashboard.html",
-        {"profile": profile},
+        {
+            "profile": profile,
+            "assigned_surveys": assigned_surveys,
+            "response_history": response_history,
+            "active_page": page,
+            "nav_items": student_nav,
+        },
     )
 
 
@@ -149,17 +200,32 @@ def teacher_signin(request):
 
 
 @login_required(login_url="student_signin")
-def teacher_dashboard(request):
+def teacher_dashboard(request, page="new"):
     """Simple landing page for the teacher account."""
     if request.user.username != _teacher_username():
         if hasattr(request.user, "student_profile"):
             return redirect("student_dashboard")
         return redirect("student_signin")
 
+    page = page.lower()
+    if page not in {"assigned", "take", "history", "new"}:
+        page = "new"
+
+    teacher_nav = [
+        {"slug": "assigned", "label": "Assigned Surveys", "icon": "📊"},
+        {"slug": "take", "label": "Take Survey", "icon": "🧩"},
+        {"slug": "history", "label": "Responses History", "icon": "📁"},
+        {"slug": "new", "label": "New Survey", "icon": "➕"},
+    ]
+
     return render(
         request,
         "main/teacher_dashboard.html",
-        {"teacher": request.user},
+        {
+            "teacher": request.user,
+            "active_page": page,
+            "nav_items": teacher_nav,
+        },
     )
 
 
