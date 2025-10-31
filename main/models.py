@@ -32,9 +32,16 @@ class ClassSection(models.Model):
         ]
         cls.objects.bulk_create(sections, ignore_conflicts=True)
 
+class ClassSection(models.Model):
+    section_id = models.CharField(max_length=2, primary_key=True)
+    year_level = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.section_id} (Year {self.year_level})"
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
+<<<<<<< HEAD
     section = models.ForeignKey(
         ClassSection,
         on_delete=models.SET_NULL,
@@ -51,15 +58,24 @@ class StudentProfile(models.Model):
         if self.section:
             return self.section.display_label
         return "Unassigned"
+=======
+    # year_section = models.CharField(max_length=50) #need naka foreign key
+    section_id = models.ForeignKey(ClassSection, on_delete=models.CASCADE, null=True,blank=True)
 
-#insert here nalang yung teacherprofile ende ko pa knows kung pano magadd admin hashhah
-"""
-insert din section model if need. Baka kasi mabago yung pagretrieve pag nimodify ko na yung studentprofile
-wait ko muna kayo kung pano retrieve tsaka create
-"""
+    def __str__(self):
+        return f"{self.user.get_full_name()} ({self.section_id})"
+>>>>>>> c9a960985e600962c7bbb673b221c633057d084e
+
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
+    class_sections = models.ManyToManyField(ClassSection, related_name="teachers", blank=True)
+
+    def __str__(self):
+        return self.user.get_full_name()
 
 '''Survey Structure'''
 class Survey(models.Model):
+<<<<<<< HEAD
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("published", "Published"),
@@ -77,11 +93,24 @@ class Survey(models.Model):
 
     class Meta:
         ordering = ["-updated_at"]
+=======
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, null=True,blank=True) #yung user model ng teacher
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('draft', 'Draft'), ('published', 'Published'), ('closed', 'Closed'), ('archived', 'Archived')],
+        default='draft'
+    )
+    assigned_sections = models.ManyToManyField(ClassSection, through='SurveyAssignment', related_name='surveys')
+>>>>>>> c9a960985e600962c7bbb673b221c633057d084e
 
     def __str__(self):
         return self.title
 
 class SurveyAssignment(models.Model):
+<<<<<<< HEAD
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("published", "Published"),
@@ -100,6 +129,17 @@ class SurveyAssignment(models.Model):
     def __str__(self):
         section_label = self.section.section_id if self.section else "Unassigned"
         return f"{self.survey.title} → {section_label} ({self.status})"
+=======
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    section = models.ForeignKey(ClassSection, on_delete=models.CASCADE)
+    assigned_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('survey', 'section')
+
+    def __str__(self):
+        return f"{self.survey.title} → {self.section.section_id}"
+>>>>>>> c9a960985e600962c7bbb673b221c633057d084e
 
 '''BASE QUESTION AND SUBTYPES STRUCTURE'''
 class Question(models.Model):
@@ -175,8 +215,8 @@ class SurveySubmission(models.Model):
 class Answer(models.Model):
     submission = models.ForeignKey(SurveySubmission, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
-    text_response = models.TextField(blank=True, null=True)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True) #used by likert and mcq
+    text_response = models.TextField(blank=True, null=True) #used for short question
 
     def __str__(self):
         return f"Answer by {self.submission.student.user.get_full_name()} to {self.question.text[:30]}"
