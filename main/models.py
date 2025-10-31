@@ -34,8 +34,8 @@ class SurveyAssignment(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     #section = models.ForeignKey(ClassSection, on_delete=models.CASCADE) #if magkakaron pa table yung section
 
-    class Meta:
-        unique_together = ('survey', 'section')
+    # class Meta:
+    #     unique_together = ('survey', 'section')
 
     # def __str__(self):
     #     return f"{self.survey.title} → {self.section.name}"
