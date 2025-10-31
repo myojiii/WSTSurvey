@@ -1,33 +1,40 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+class ClassSection(models.Model):
+    section_id = models.CharField(max_length=2, primary_key=True)
+    year_level = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.section_id} (Year {self.year_level})"
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
-    year_section = models.CharField(max_length=50) #need naka foreign key
+    # year_section = models.CharField(max_length=50) #need naka foreign key
+    section_id = models.ForeignKey(ClassSection, on_delete=models.CASCADE, null=True,blank=True)
 
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.year_section})"
+        return f"{self.user.get_full_name()} ({self.section_id})"
 
-#insert here nalang yung teacherprofile ende ko pa knows kung pano magadd admin hashhah
-
-class ClassSection(models.Model):
-    section_name = models.CharField(max_length=50)
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
+    class_sections = models.ManyToManyField(ClassSection, related_name="teachers", blank=True)
 
     def __str__(self):
-        return self.section_name
+        return self.user.get_full_name()
 
 '''Survey Structure'''
 class Survey(models.Model):
-    #teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE) #yung user model ng teacher
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, null=True,blank=True) #yung user model ng teacher
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
-        choices=[('draft', 'Draft'), ('published', 'Published'), ('closed', 'Closed')],
+        choices=[('draft', 'Draft'), ('published', 'Published'), ('closed', 'Closed'), ('archived', 'Archived')],
         default='draft'
     )
+    assigned_sections = models.ManyToManyField(ClassSection, through='SurveyAssignment', related_name='surveys')
 
     def __str__(self):
         return self.title
@@ -41,7 +48,7 @@ class SurveyAssignment(models.Model):
         unique_together = ('survey', 'section')
 
     def __str__(self):
-        return f"{self.survey.title} → {self.section.section_name}"
+        return f"{self.survey.title} → {self.section.section_id}"
 
 '''BASE QUESTION AND SUBTYPES STRUCTURE'''
 class Question(models.Model):
@@ -113,8 +120,8 @@ class SurveySubmission(models.Model):
 class Answer(models.Model):
     submission = models.ForeignKey(SurveySubmission, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
-    text_response = models.TextField(blank=True, null=True)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True) #used by likert and mcq
+    text_response = models.TextField(blank=True, null=True) #used for short question
 
     def __str__(self):
         return f"Answer by {self.submission.student.user.get_full_name()} to {self.question.text[:30]}"
