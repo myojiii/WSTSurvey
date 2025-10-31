@@ -4,16 +4,18 @@ from django.db import models
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile")
-    year_section = models.CharField(max_length=50)
+    year_section = models.CharField(max_length=50) #need naka foreign key
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.year_section})"
 
 #insert here nalang yung teacherprofile ende ko pa knows kung pano magadd admin hashhah
-"""
-insert din section model if need. Baka kasi mabago yung pagretrieve pag nimodify ko na yung studentprofile
-wait ko muna kayo kung pano retrieve tsaka create
-"""
+
+class ClassSection(models.Model):
+    section_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.section_name
 
 '''Survey Structure'''
 class Survey(models.Model):
@@ -32,13 +34,14 @@ class Survey(models.Model):
 
 class SurveyAssignment(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
-    #section = models.ForeignKey(ClassSection, on_delete=models.CASCADE) #if magkakaron pa table yung section
+    section = models.ForeignKey(ClassSection, on_delete=models.CASCADE)
+    assigned_date = models.DateTimeField(auto_now_add=True)
 
-    # class Meta:
-    #     unique_together = ('survey', 'section')
+    class Meta:
+        unique_together = ('survey', 'section')
 
-    # def __str__(self):
-    #     return f"{self.survey.title} → {self.section.name}"
+    def __str__(self):
+        return f"{self.survey.title} → {self.section.section_name}"
 
 '''BASE QUESTION AND SUBTYPES STRUCTURE'''
 class Question(models.Model):
