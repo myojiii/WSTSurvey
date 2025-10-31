@@ -83,7 +83,7 @@
             <div class="field-error">{{ form.email.errors.0 }}</div>
         {% endif %}
     </div>
-    <div class="field-group field-span-2 field-group--split">
+    <div class="field-group field-span-2 field-group--split signup-section-row">
         <div class="split-field">
             <label for="{{ form.year.id_for_label }}">Year</label>
             <select
@@ -95,15 +95,15 @@
                 <option
                     value="{{ value }}"
                     {% if not value %}disabled{% endif %}
-                        {% if form.year.value == value %}
-                            selected
-                        {% elif not value and not form.year.value %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
+                    {% if form.year.value == value %}
+                        selected
+                    {% elif not value and not form.year.value %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
             </select>
             {% if form.year.errors %}
                 <div class="field-error">{{ form.year.errors.0 }}</div>
@@ -116,50 +116,81 @@
                 name="section"
                 class="pill-input pill-select"
             >
-            {% for value, label in form.section.field.choices %}
+        {% for value, label in form.section.field.choices %}
+            {% if value %}
                 <option
                     value="{{ value }}"
-                    {% if not value %}disabled{% endif %}
-                        {% if form.section.value == value %}
-                            selected
-                        {% elif not value and not form.section.value %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
+                    data-year="{{ value|slice:':1' }}"
+                    {% if form.section.value|stringformat:"s" == value|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ value }}
+                </option>
+            {% else %}
+                <option value="" disabled {% if not form.section.value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endif %}
+        {% endfor %}
+        </select>
             {% if form.section.errors %}
                 <div class="field-error">{{ form.section.errors.0 }}</div>
-            {% endif %}
-        </div>
-        <div class="split-field">
-            <label for="{{ form.group.id_for_label }}">Group</label>
-            <select
-                id="{{ form.group.id_for_label }}"
-                name="group"
-                class="pill-input pill-select"
-            >
-            {% for value, label in form.group.field.choices %}
-                <option
-                    value="{{ value }}"
-                    {% if not value %}disabled{% endif %}
-                        {% if form.group.value == value %}
-                            selected
-                        {% elif not value and not form.group.value %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-            {% if form.group.errors %}
-                <div class="field-error">{{ form.group.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 {% endblock %}
 
 {% block submit_label %}Sign Up{% endblock %}
+
+{% block form_below %}
+    {{ block.super }}
+    <script>
+        (function() {
+            const yearSelect = document.getElementById("id_year");
+            const sectionSelect = document.getElementById("id_section");
+            if (!yearSelect || !sectionSelect) {
+                return;
+            }
+
+            function filterSections() {
+                const selectedYear = yearSelect.value;
+                let firstVisibleValue = "";
+
+                Array.from(sectionSelect.options).forEach(function(option) {
+                    if (!option.value) {
+                        option.hidden = false;
+                        return;
+                    }
+                    const matches = selectedYear && option.dataset.year === selectedYear;
+                    option.hidden = !matches;
+                    if (matches && !firstVisibleValue) {
+                        firstVisibleValue = option.value;
+                    }
+                    if (!matches && option.selected) {
+                        option.selected = false;
+                    }
+                });
+
+                if (!selectedYear) {
+                    sectionSelect.disabled = true;
+                    sectionSelect.selectedIndex = 0;
+                    return;
+                }
+
+                sectionSelect.disabled = false;
+                if (firstVisibleValue) {
+                    sectionSelect.value = firstVisibleValue;
+                } else {
+                    sectionSelect.selectedIndex = 0;
+                }
+            }
+
+            yearSelect.addEventListener("change", function() {
+                filterSections();
+            });
+
+            filterSections();
+        }());
+    </script>
+{% endblock %}

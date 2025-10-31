@@ -206,45 +206,106 @@
         }
 
         .content {
-            padding: 2.6rem 3.2rem 3.2rem;
-            display: grid;
-            gap: 2rem;
+            padding: 2.2rem 2.8rem 2.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.4rem;
         }
 
-        .content-header {
+        .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
         }
 
-        .content-header h1 {
+        .page-header h1 {
             margin: 0;
-            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-size: clamp(1.8rem, 3.2vw, 2.3rem);
             color: #1f3f37;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
         }
 
         .filter-select {
             position: relative;
             background: #ffffff;
             border-radius: 12px;
-            padding: 0.75rem 1rem;
-            min-width: 140px;
+            padding: 0.4rem 0.75rem;
+            min-width: 150px;
             display: inline-flex;
             align-items: center;
-            gap: 0.7rem;
+            gap: 0.45rem;
             font-weight: 600;
             color: #27493f;
-            border: 1px solid rgba(31, 82, 68, 0.2);
+            border: 1px solid rgba(31, 82, 68, 0.18);
+            box-shadow: 0 4px 14px rgba(23, 90, 76, 0.1);
             cursor: pointer;
+        }
+
+        .filter-select::after {
+            content: "▾";
+            position: absolute;
+            right: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            color: rgba(39, 73, 63, 0.7);
+            pointer-events: none;
+        }
+
+        .filter-select select {
+            border: none;
+            background: transparent;
+            font: inherit;
+            color: inherit;
+            appearance: none;
+            padding-right: 1.8rem;
+            cursor: pointer;
+        }
+
+        .filter-select span {
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(39, 73, 63, 0.72);
+        }
+
+        .filter-apply {
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #ffffff;
+            padding: 0.55rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(31, 121, 101, 0.22);
+            transition: transform 0.15s ease;
+        }
+
+        .filter-apply:hover {
+            transform: translateY(-1px);
+        }
+
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .table-card {
             background: #ffffff;
             border-radius: 26px;
-            box-shadow: 0 25px 60px rgba(20, 80, 70, 0.08);
-            padding: 2rem;
+            box-shadow: 0 18px 48px rgba(20, 80, 70, 0.09);
+            padding: 1.8rem;
             display: grid;
-            gap: 1.4rem;
+            gap: 1.2rem;
         }
 
         .table-card__inner {
@@ -252,6 +313,22 @@
             border-radius: 22px;
             overflow: hidden;
             background: linear-gradient(180deg, rgba(214, 245, 234, 0.55) 0%, rgba(234, 252, 243, 0.55) 100%);
+        }
+
+        .flash-stack {
+            margin: 1.2rem 0 0.3rem;
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .flash-message {
+            padding: 0.85rem 1.1rem;
+            border-radius: 12px;
+            background: rgba(27, 154, 127, 0.15);
+            border: 1px solid rgba(27, 154, 127, 0.25);
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 0.92rem;
         }
 
         .sidebar-toggle {
@@ -377,7 +454,7 @@
                     <div class="avatar">{{ profile.user.first_name|default:"S"|slice:":1" }}</div>
                     <div>
                         <strong>{{ profile.user.last_name|upper }}</strong>
-                        <span>Student · {{ profile.year_section }}</span>
+                        <span>Student · {{ profile.section_label }}</span>
                     </div>
                 </div>
                 <nav class="nav-list">
@@ -395,23 +472,48 @@
             </div>
         </aside>
         <main class="content">
-            <div class="content-header">
+            <div class="page-header">
                 <h1>
                     {% if active_page == 'assigned' %}
                         Assigned Surveys
                     {% elif active_page == 'responses' %}
-                        My Responses
+                        Response History
                     {% endif %}
                 </h1>
                 {% if active_page == 'assigned' %}
-                    <div class="filter-select">
-                        ALL TIME
-                        <span>▾</span>
+                    <div class="header-meta">
+                        <form method="get" class="filter-form">
+                            <input type="hidden" name="page" value="assigned">
+                            <label class="filter-select">
+                                <span>Assigned</span>
+                                <select name="range">
+                                    <option value="all" {% if assigned_filters.range == 'all' %}selected{% endif %}>All Time</option>
+                                    <option value="today" {% if assigned_filters.range == 'today' %}selected{% endif %}>Today</option>
+                                    <option value="week" {% if assigned_filters.range == 'week' %}selected{% endif %}>This Week</option>
+                                    <option value="month" {% if assigned_filters.range == 'month' %}selected{% endif %}>This Month</option>
+                                </select>
+                            </label>
+                            <label class="filter-select">
+                                <span>Due</span>
+                                <select name="due">
+                                    <option value="all" {% if assigned_filters.due == 'all' %}selected{% endif %}>All Dates</option>
+                                    <option value="today" {% if assigned_filters.due == 'today' %}selected{% endif %}>Today</option>
+                                    <option value="week" {% if assigned_filters.due == 'week' %}selected{% endif %}>This Week</option>
+                                    <option value="month" {% if assigned_filters.due == 'month' %}selected{% endif %}>This Month</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="filter-apply">Apply</button>
+                        </form>
                     </div>
-                {% else %}
-                    <div style="width:140px;"></div>
                 {% endif %}
             </div>
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             {% if active_page == 'assigned' %}
                 <section class="table-card">
                     <div class="table-card__inner">
@@ -421,54 +523,74 @@
                                     <th>No.</th>
                                     <th>Survey Title</th>
                                     <th>Assigned By</th>
-                                    <th>Date Submitted</th>
+                                    <th>Assigned On</th>
                                     <th>Due Date</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for survey in assigned_surveys %}
+                                {% if assigned_surveys %}
+                                    {% for survey in assigned_surveys %}
                                     <tr>
-                                        <td>{{ survey.id }}</td>
+                                        <td>{{ forloop.counter }}</td>
                                         <td>{{ survey.title }}</td>
                                         <td>{{ survey.assigned_by }}</td>
-                                        <td>{{ survey.date_submitted }}</td>
-                                        <td>{{ survey.due_date }}</td>
-                                        <td><a href="#" class="action-link">View Response</a></td>
+                                        <td>{% if survey.assigned_date %}{{ survey.assigned_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                        <td>{% if survey.due_date %}{{ survey.due_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                        <td>{{ survey.status }}</td>
+                                        <td>
+                                            <a href="{% url 'student_take_survey' survey.assignment_id %}"
+                                               class="action-link">Take Survey</a>
+                                        </td>
                                     </tr>
                                 {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding: 2rem;">No surveys assigned to your section yet.</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                 </section>
             {% elif active_page == 'responses' %}
                 <section class="table-card">
-                    <div class="table-card__inner" style="padding: 2.6rem;">
-                        {% if response_history %}
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Survey</th>
-                                        <th>Date Submitted</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for response in response_history %}
+                    <div class="table-card__inner">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Survey Title</th>
+                                    <th>Assigned By</th>
+                                    <th>Assigned On</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if completed_surveys %}
+                                    {% for survey in completed_surveys %}
                                         <tr>
-                                            <td>{{ response.survey }}</td>
-                                            <td>{{ response.submitted }}</td>
-                                            <td>{{ response.status }}</td>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ survey.title }}</td>
+                                            <td>{{ survey.assigned_by }}</td>
+                                            <td>{% if survey.assigned_date %}{{ survey.assigned_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                            <td>{% if survey.due_date %}{{ survey.due_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                            <td>{{ survey.status }}</td>
+                                            <td>
+                                                <a href="{% url 'student_view_response' survey.submission_id %}" class="action-link">View Response</a>
+                                            </td>
                                         </tr>
                                     {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <div style="text-align:center; padding: 2rem;">
-                                <h2 style="margin:0 0 0.5rem;">No Responses Yet</h2>
-                                <p style="margin:0; color:#497165;">When you submit surveys, they will appear here for quick reference.</p>
-                            </div>
-                        {% endif %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding: 2rem;">You haven’t completed any surveys yet.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             {% endif %}

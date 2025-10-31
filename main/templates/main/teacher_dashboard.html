@@ -207,9 +207,10 @@
         }
 
         .content {
-            padding: 2.8rem 3.2rem 3.4rem;
-            display: grid;
-            gap: 2rem;
+            padding: 2.2rem 2.8rem 2.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
         }
 
         .sidebar-toggle button:hover {
@@ -219,24 +220,36 @@
         .content-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-end;
             background: #ffffff;
-            border-radius: 26px;
+            border-radius: 28px;
             padding: 1.2rem 1.8rem;
-            border: 1.5px solid rgba(32, 147, 119, 0.2);
-            box-shadow: 0 18px 45px rgba(25, 94, 78, 0.08);
+            border: 1.2px solid rgba(32, 147, 119, 0.18);
+            box-shadow: 0 18px 42px rgba(25, 94, 78, 0.12);
+            gap: 1.2rem;
         }
 
         .content-header h1 {
             margin: 0;
-            font-size: clamp(1.9rem, 4.5vw, 2.3rem);
+            font-size: clamp(1.6rem, 3.4vw, 2.1rem);
             color: var(--text-dark);
+            flex: 1;
         }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .edit-indicator {
+            padding: 0.35rem 0.9rem;
+            background: var(--accent-soft);
+            border-radius: 999px;
+            font-size: 0.82rem;
+            color: var(--accent);
+            white-space: nowrap;
         }
 
         .pill-tabs {
@@ -289,6 +302,58 @@
             box-shadow: 0 18px 25px rgba(21, 123, 99, 0.25);
         }
 
+        .secondary-action {
+            border: 1.5px solid rgba(32, 147, 119, 0.35);
+            border-radius: 16px;
+            padding: 0.7rem 1.4rem;
+            background: #ffffff;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(16, 88, 70, 0.12);
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .secondary-action:hover {
+            background: rgba(32, 147, 119, 0.1);
+            box-shadow: 0 10px 20px rgba(16, 88, 70, 0.18);
+        }
+
+        .action-link {
+            color: #157b63;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        .collection-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(180deg, rgba(228, 249, 239, 0.7) 0%, rgba(239, 253, 247, 0.85) 100%);
+            border-radius: 22px;
+            overflow: hidden;
+        }
+
+        .collection-table thead th {
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            color: rgba(21, 85, 67, 0.82);
+        }
+
+        .collection-table tbody td {
+            padding: 0.65rem 0.75rem;
+            font-size: 0.95rem;
+            color: rgba(26, 70, 58, 0.92);
+        }
+
+        .collection-table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
         .module-card {
             background: #ffffff;
             border-radius: 26px;
@@ -337,6 +402,435 @@
             font-weight: 600;
             color: var(--accent);
             cursor: pointer;
+        }
+
+        .selector-input {
+            width: 100%;
+            border: 1.5px solid rgba(32, 147, 119, 0.24);
+            border-radius: 12px;
+            padding: 0.65rem 1.1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+
+        .selector-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(32, 147, 119, 0.16);
+        }
+
+        /* Survey builder styles */
+        .survey-builder {
+            display: grid;
+            gap: 1.6rem;
+        }
+
+        .survey-panel {
+            background: #d9f5ec;
+            border: 1.5px solid rgba(32, 147, 119, 0.24);
+            border-radius: 24px;
+            padding: 1.6rem 1.9rem;
+            box-shadow: 0 22px 48px rgba(25, 94, 75, 0.12);
+            display: grid;
+            gap: 1.4rem;
+            min-height: 240px;
+        }
+
+        .survey-panel.is-hidden {
+            display: none;
+        }
+
+        .survey-banner {
+            background: rgba(255, 255, 255, 0.48);
+            border: 1.5px solid rgba(32, 147, 119, 0.18);
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            display: grid;
+            gap: 0.4rem;
+        }
+
+        .survey-title-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 1.55rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 0;
+            margin: 0 0 0.4rem;
+        }
+
+        .survey-title-input:focus {
+            outline: none;
+        }
+
+        .survey-description-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.98rem;
+            color: rgba(36, 70, 61, 0.75);
+            resize: none;
+            min-height: 44px;
+        }
+
+        .survey-description-input:focus {
+            outline: none;
+        }
+
+        .question-board {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            gap: 1.2rem;
+        }
+
+        .question-stack {
+            display: grid;
+            gap: 1.2rem;
+            min-height: 180px;
+        }
+
+        .question-card {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: flex-start;
+            gap: 1.4rem;
+            padding: 1.6rem 1.8rem;
+            border-radius: 24px;
+            border: 1.5px solid rgba(32, 147, 119, 0.2);
+            background: #ffffff;
+            box-shadow: 0 26px 60px rgba(25, 94, 75, 0.08);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .question-card.dragging {
+            opacity: 0.65;
+            border-color: rgba(32, 147, 119, 0.45);
+            box-shadow: 0 18px 40px rgba(25, 94, 75, 0.14);
+        }
+
+        .question-card__handle {
+            display: grid;
+            place-items: center;
+            color: rgba(36, 70, 61, 0.5);
+            cursor: grab;
+            font-size: 1.4rem;
+            user-select: none;
+        }
+
+        .question-card__body {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .question-title-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1.5px solid rgba(32, 147, 119, 0.32);
+            padding: 0 0 0.4rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            background: transparent;
+        }
+
+        .question-title-input:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+        }
+
+        .question-type-select {
+            appearance: none;
+            border: 1.5px solid rgba(32, 147, 119, 0.32);
+            border-radius: 12px;
+            padding: 0.55rem 1.8rem 0.55rem 0.75rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--accent);
+            background: url("data:image/svg+xml,%3Csvg width='16' height='10' viewBox='0 0 16 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 2L8 8L14 2' stroke='%23209377' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.65rem center/12px auto, #ffffff;
+            cursor: pointer;
+        }
+
+        .question-type-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .question-field {
+            border: none;
+            border-bottom: 1px dashed rgba(36, 70, 61, 0.3);
+            padding: 0.35rem 0;
+            font-size: 0.95rem;
+            background: transparent;
+            color: rgba(36, 70, 61, 0.8);
+        }
+
+        .question-field:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .options-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.94rem;
+        }
+
+        .options-item button {
+            border: none;
+            background: transparent;
+            color: rgba(36, 70, 61, 0.45);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .add-inline-button {
+            border: none;
+            background: transparent;
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .likert-editor {
+            background: rgba(32, 147, 119, 0.05);
+            border: 1px solid rgba(32, 147, 119, 0.18);
+            border-radius: 18px;
+            padding: 1.2rem 1.3rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .likert-editor-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .likert-editor-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .likert-editor-row input[type="text"] {
+            border: none;
+            border-bottom: 1px solid rgba(32, 147, 119, 0.25);
+            padding: 0.35rem 0;
+            font-size: 0.94rem;
+            background: transparent;
+        }
+
+        .likert-editor-row input[type="text"]:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+        }
+
+        .likert-remove {
+            border: none;
+            background: transparent;
+            color: rgba(36, 70, 61, 0.55);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            line-height: 1;
+        }
+
+        .likert-remove:hover {
+            color: var(--accent);
+        }
+
+        .likert-editor-actions {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .likert-preview {
+            display: none;
+        }
+
+        .question-card__meta {
+            display: grid;
+            gap: 1rem;
+            align-items: flex-start;
+            justify-items: end;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 0.45rem;
+        }
+
+        .question-actions button {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(32, 147, 119, 0.25);
+            background: #ffffff;
+            color: var(--accent);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+
+        .question-actions button:hover {
+            background: rgba(32, 147, 119, 0.08);
+        }
+
+        .question-actions button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .required-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.9rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 42px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: rgba(32, 147, 119, 0.28);
+            transition: background 0.2s ease;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            top: 2px;
+            border-radius: 50%;
+            background: #ffffff;
+            transition: transform 0.2s ease;
+            box-shadow: 0 3px 6px rgba(25, 94, 75, 0.26);
+        }
+
+        .switch input:checked + .slider {
+            background: var(--accent);
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(18px);
+        }
+
+        .add-question-button {
+            align-self: end;
+            justify-self: end;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #1dae8b 0%, #157b63 100%);
+            color: #f9fffc;
+            font-size: 1.8rem;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            box-shadow: 0 18px 28px rgba(21, 123, 99, 0.25);
+        }
+
+        .add-question-button:active {
+            transform: translateY(1px);
+        }
+
+        .question-drop-marker {
+            height: 14px;
+            border-radius: 8px;
+            border: 1.5px dashed rgba(32, 147, 119, 0.3);
+            background: rgba(32, 147, 119, 0.12);
+            margin-bottom: -7px;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .question-drop-marker.is-visible {
+            opacity: 1;
+        }
+
+        .settings-board {
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        .section-assign-grid {
+            display: grid;
+            gap: 0.7rem;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .section-assign-item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 14px;
+            border: 1.5px solid rgba(32, 147, 119, 0.24);
+            background: rgba(32, 147, 119, 0.08);
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .section-assign-item:hover {
+            border-color: rgba(32, 147, 119, 0.5);
+            background: rgba(32, 147, 119, 0.14);
+        }
+
+        .section-assign-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .section-assign-item strong {
+            display: block;
+            font-size: 1.05rem;
+            color: var(--text-dark);
+        }
+
+        .section-assign-item span {
+            display: block;
+            font-size: 0.82rem;
+            color: rgba(36, 70, 61, 0.65);
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 1220px) {
+            .question-board {
+                display: grid;
+                gap: 1rem;
+            }
         }
 
         .layout.is-collapsed .profile-card div,
@@ -412,10 +906,10 @@
         <main class="content">
             <header class="content-header">
                 <h1>
-                    {% if active_page == 'assigned' %}
+                    {% if active_page == 'collection' %}
+                        Survey Collection
+                    {% elif active_page == 'assigned' %}
                         Assigned Surveys
-                    {% elif active_page == 'take' %}
-                        Take Survey
                     {% elif active_page == 'history' %}
                         Responses History
                     {% else %}
@@ -424,13 +918,16 @@
                 </h1>
                 {% if active_page == 'new' %}
                     <div class="header-controls">
-                        <div class="pill-tabs">
-                            <button class="active" type="button">Questions</button>
-                            <button type="button">Settings</button>
+                        <div class="pill-tabs" role="tablist">
+                            <button class="active" type="button" data-view="questions" aria-pressed="true">Questions</button>
+                            <button type="button" data-view="settings" aria-pressed="false">Settings</button>
                         </div>
-                        <button class="icon-button" type="button" aria-label="Preview">👁</button>
-                        <button class="icon-button" type="button" aria-label="More">⋮</button>
-                        <button class="primary-action" type="button">Publish</button>
+                        {% if editing_payload %}
+                            <span class="edit-indicator">Editing {{ editing_payload.status|default:'draft'|title }}</span>
+                        {% endif %}
+                        <button class="secondary-action" type="button" id="preview-btn">Preview</button>
+                        <button class="secondary-action" type="button" id="save-draft-btn">Save to Draft</button>
+                        <button class="primary-action" type="button" id="publish-btn">Publish</button>
                     </div>
                 {% else %}
                     <div style="width:180px;"></div>
@@ -438,26 +935,184 @@
             </header>
 
             {% if active_page == 'new' %}
-                <section class="module-card">
-                    <div class="module-grid">
-                        <div class="module-block">
-                            <div class="module-inline">
-                                <h2>Section Assigned</h2>
-                                <button class="selector-button" type="button">Choose Section ▾</button>
+                <section class="survey-builder">
+                    <div class="survey-panel" data-panel="questions">
+                        <div class="survey-banner">
+                            <input type="text" id="survey-title" class="survey-title-input" value="{{ editing_payload.title|default:'Untitled Form' }}" aria-label="Survey title">
+                            <textarea id="survey-description" class="survey-description-input" maxlength="30" placeholder="Form Description" aria-label="Survey description">{{ editing_payload.description|default_if_none:'' }}</textarea>
+                        </div>
+                        <div class="question-board">
+                            <div class="question-stack" id="question-stack">
+                                {% if editing_payload and editing_payload.questions %}
+                                    {% for question in editing_payload.questions %}
+                                        {% with type=question.question_type %}
+                                            <article class="question-card" draggable="false" data-question-id="q-{{ question.id|default:forloop.counter }}" data-question-type="{{ type }}" data-initialized="true">
+                                                <div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>
+                                                <div class="question-card__body">
+                                                    <input type="text" class="question-title-input" value="{{ question.title|default:'' }}" aria-label="Question title">
+                                                    <div class="question-dynamic" data-role="question-fields">
+                                                        {% if type == 'multiple_choice' %}
+                                                            <ul class="options-list" data-role="options-list">
+                                                                {% for choice in question.choices %}
+                                                                    <li class="options-item">
+                                                                        <span aria-hidden="true">◉</span>
+                                                                        <input type="text" class="question-field" value="{{ choice|default:'' }}" aria-label="Choice label">
+                                                                        <button type="button" data-action="remove-option" aria-label="Remove option">✕</button>
+                                                                    </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                            <button type="button" class="add-inline-button" data-action="add-option"><span aria-hidden="true">+</span> Add Option</button>
+                                                        {% elif type == 'likert' %}
+                                                            <div class="likert-editor">
+                                                                <div class="likert-editor-list" data-role="likert-list">
+                                                                    {% for label in question.scale_labels %}
+                                                                        <div class="likert-editor-row">
+                                                                            <input type="text" value="{{ label|default:'' }}" placeholder="Label (optional)" data-role="likert-input">
+                                                                            <button type="button" class="likert-remove" data-action="likert-remove" aria-label="Remove likert option">×</button>
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                                <div class="likert-editor-actions">
+                                                                    <button type="button" class="add-inline-button" data-action="likert-add"><span aria-hidden="true">+</span> Add</button>
+                                                                </div>
+                                                                <div class="likert-preview">
+                                                                    <span class="likert-preview-title">Preview</span>
+                                                                    <div class="likert-preview-options" data-role="likert-preview">
+                                                                        {% for label in question.scale_labels %}
+                                                                            <div class="likert-preview-option">{{ label|default:"Label " }}{% if not label %}{{ forloop.counter }}{% endif %}</div>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% else %}
+                                                            <input type="text" class="question-field" placeholder="Short answer text" aria-label="Short answer text preview" disabled>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="question-card__meta">
+                                                    <select class="question-type-select" aria-label="Question type">
+                                                        <option value="short_text" {% if type == 'short_text' %}selected{% endif %}>Short Text</option>
+                                                        <option value="multiple_choice" {% if type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
+                                                        <option value="likert" {% if type == 'likert' %}selected{% endif %}>Likert Scale</option>
+                                                    </select>
+                                                    <div class="question-actions">
+                                                        <button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>
+                                                        <button type="button" data-action="delete" aria-label="Delete question">🗑</button>
+                                                    </div>
+                                                    <label class="required-toggle">
+                                                        Required
+                                                        <span class="switch">
+                                                            <input type="checkbox" {% if question.is_required %}checked{% endif %}>
+                                                            <span class="slider"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </article>
+                                        {% endwith %}
+                                    {% endfor %}
+                                {% else %}
+                                    <article class="question-card" draggable="false" data-question-id="q-1" data-question-type="short_text">
+                                        <div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>
+                                        <div class="question-card__body">
+                                            <input type="text" class="question-title-input" value="Untitled Question" aria-label="Question title">
+                                            <div class="question-dynamic" data-role="question-fields">
+                                                <input type="text" class="question-field" placeholder="Short answer text" aria-label="Short answer text preview" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="question-card__meta">
+                                            <select class="question-type-select" aria-label="Question type">
+                                                <option value="short_text" selected>Short Text</option>
+                                                <option value="multiple_choice">Multiple Choice</option>
+                                                <option value="likert">Likert Scale</option>
+                                            </select>
+                                            <div class="question-actions">
+                                                <button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>
+                                                <button type="button" data-action="delete" aria-label="Delete question">🗑</button>
+                                            </div>
+                                            <label class="required-toggle">
+                                                Required
+                                                <span class="switch">
+                                                    <input type="checkbox" checked>
+                                                    <span class="slider"></span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </article>
+                                {% endif %}
+                                <div class="question-drop-marker" id="question-drop-marker" aria-hidden="true"></div>
                             </div>
-                            <p>Assign a section or group to receive and complete this survey.</p>
+                            <button class="add-question-button" type="button" id="add-question-btn" aria-label="Add question">+</button>
                         </div>
-                        <div class="module-block">
-                            <div class="module-inline">
-                                <h2>Due Dates</h2>
-                                <button class="selector-button" type="button">Select Due Date ▾</button>
+                    </div>
+                    <div class="survey-panel is-hidden" data-panel="settings">
+                        <div class="settings-board">
+                            <div class="module-block">
+                                <h2>Sections Assigned</h2>
+                                <p>Select one or more class sections to receive this survey.</p>
+                                <div class="section-assign-grid">
+                                    {% for section in sections %}
+                                        <label class="section-assign-item" for="section-{{ section.section_id }}">
+                                            <input id="section-{{ section.section_id }}" type="checkbox" name="assigned_sections" value="{{ section.section_id }}" {% if editing_payload.sections and section.section_id in editing_payload.sections %}checked{% endif %}>
+                                            <div>
+                                                <strong>{{ section.section_id }}</strong>
+                                                <span>Year {{ section.year }}</span>
+                                            </div>
+                                        </label>
+                                    {% endfor %}
+                                </div>
                             </div>
-                            <p>Define the deadline window when respondents must complete the survey.</p>
+                            <div class="module-block">
+                                <h2>Due Date</h2>
+                                <p>Choose a closing date for this survey.</p>
+                                <input type="date" id="survey-due-date" class="selector-input" aria-label="Survey due date" value="{{ editing_payload.due_date|default:'' }}">
+                            </div>
                         </div>
-                        <div class="module-block">
-                            <h2>Overview</h2>
-                            <p>This space will showcase analytics, response progress, and other survey insights once data begins to arrive.</p>
-                        </div>
+                    </div>
+                </section>
+            {% elif active_page == 'collection' %}
+                <section class="survey-builder">
+                    <div class="survey-panel" data-panel="collection">
+                        {% if collection_surveys %}
+                            <table class="collection-table" style="margin-top:1rem;">
+                                <thead>
+                                    <tr style="text-align:left;">
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Sections</th>
+                                        <th>Updated</th>
+                                        <th style="text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for survey in collection_surveys %}
+                                        <tr>
+                                            <td style="font-weight:600;">{{ survey.title }}</td>
+                                            <td style="text-transform:capitalize;">{{ survey.status }}</td>
+                                            <td>
+                                                {% with assignments=survey.assignments.all %}
+                                                    {% if assignments %}
+                                                        {% for assign in assignments %}
+                                                            {% if assign.section %}
+                                                                <span style="display:inline-block; margin-right:0.4rem; padding:0.25rem 0.6rem; border-radius:999px; background:rgba(32, 147, 119, 0.12); color:var(--accent); font-size:0.82rem;">{{ assign.section.section_id }}</span>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span style="color:rgba(36, 70, 61, 0.6);">No sections yet</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </td>
+                                            <td>{{ survey.updated_at|date:"M d, Y H:i" }}</td>
+                                            <td style="text-align:right;">
+                                                <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="action-link" style="margin-right:0.8rem;">Edit</a>
+                                                <a href="{% url 'teacher_preview_survey' survey.id %}" target="_blank" class="action-link">Preview</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p style="margin:0; color:rgba(36, 70, 61, 0.7);">No surveys created yet. Use the New Survey tab to start building one.</p>
+                        {% endif %}
                     </div>
                 </section>
             {% else %}
@@ -470,6 +1125,7 @@
             {% endif %}
         </main>
     </div>
+    {{ editing_payload|json_script:"initial-survey-data" }}
     <script>
         (function() {
             const layout = document.querySelector('.layout');
@@ -480,6 +1136,817 @@
             toggle.addEventListener('click', function() {
                 layout.classList.toggle('is-collapsed');
             });
+        }());
+
+        (function() {
+            const builder = document.querySelector('.survey-builder');
+            if (!builder) {
+                return;
+            }
+
+            const initialSurveyElement = document.getElementById('initial-survey-data');
+            const initialSurveyData = initialSurveyElement ? JSON.parse(initialSurveyElement.textContent) : null;
+
+            const stack = builder.querySelector('#question-stack');
+            const addButton = builder.querySelector('#add-question-btn');
+            const dropMarker = builder.querySelector('#question-drop-marker');
+            const tabButtons = document.querySelectorAll('.pill-tabs button[data-view]');
+            const panels = builder.querySelectorAll('[data-panel]');
+            const descriptionInput = builder.querySelector('#survey-description');
+            const titleInput = document.getElementById('survey-title');
+            const dueDateInput = document.getElementById('survey-due-date');
+            const saveDraftBtn = document.getElementById('save-draft-btn');
+            const publishBtn = document.getElementById('publish-btn');
+            const previewBtn = document.getElementById('preview-btn');
+            const sectionInputs = builder.querySelectorAll('input[name="assigned_sections"]');
+            if (!stack || !dropMarker) {
+                return;
+            }
+
+            let questionCounter = stack.querySelectorAll('.question-card').length;
+            stack.appendChild(dropMarker);
+
+            function nextQuestionId() {
+                questionCounter += 1;
+                return 'q-' + Date.now() + '-' + questionCounter;
+            }
+
+            function ensureDropMarkerResting() {
+                dropMarker.classList.remove('is-visible');
+                dropMarker.remove();
+                stack.appendChild(dropMarker);
+            }
+
+            function showView(view) {
+                const target = view === 'settings' ? 'settings' : 'questions';
+                panels.forEach(function(panel) {
+                    const isTarget = panel.dataset.panel === target;
+                    panel.classList.toggle('is-hidden', !isTarget);
+                });
+                tabButtons.forEach(function(button) {
+                    const isActive = (button.dataset.view || 'questions') === target;
+                    button.classList.toggle('active', isActive);
+                    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
+                if (target !== 'questions') {
+                    ensureDropMarkerResting();
+                }
+            }
+
+            function createOptionItem(labelText) {
+                const li = document.createElement('li');
+                li.className = 'options-item';
+
+                const icon = document.createElement('span');
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = '◉';
+                li.appendChild(icon);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'question-field';
+                input.value = labelText || '';
+                input.setAttribute('aria-label', 'Choice label');
+                li.appendChild(input);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.dataset.action = 'remove-option';
+                remove.setAttribute('aria-label', 'Remove option');
+                remove.textContent = '✕';
+                li.appendChild(remove);
+
+                return li;
+            }
+
+            function createLikertRow(labelText) {
+                const row = document.createElement('div');
+                row.className = 'likert-editor-row';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = labelText || '';
+                input.placeholder = 'Label (optional)';
+                input.dataset.role = 'likert-input';
+                row.appendChild(input);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'likert-remove';
+                remove.dataset.action = 'likert-remove';
+                remove.setAttribute('aria-label', 'Remove likert option');
+                remove.textContent = '×';
+                row.appendChild(remove);
+
+                return row;
+            }
+
+            function updateLikertPreview(wrapper) {
+                if (!wrapper) {
+                    return;
+                }
+                const preview = wrapper.querySelector('[data-role="likert-preview"]');
+                if (!preview) {
+                    return;
+                }
+                const inputs = wrapper.querySelectorAll('[data-role="likert-input"]');
+                preview.innerHTML = '';
+                inputs.forEach(function(input, index) {
+                    const label = document.createElement('div');
+                    label.className = 'likert-preview-option';
+                    const text = input.value.trim() || 'Label ' + (index + 1);
+                    label.textContent = text;
+                    preview.appendChild(label);
+                });
+            }
+
+            function buildLikertEditor() {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'likert-editor';
+
+                const list = document.createElement('div');
+                list.className = 'likert-editor-list';
+                list.dataset.role = 'likert-list';
+                list.appendChild(createLikertRow(''));
+                list.appendChild(createLikertRow(''));
+                list.appendChild(createLikertRow(''));
+                wrapper.appendChild(list);
+
+                const addRow = document.createElement('div');
+                addRow.className = 'likert-editor-actions';
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'add-inline-button';
+                addButton.dataset.action = 'likert-add';
+                addButton.innerHTML = '<span aria-hidden="true">+</span> Add';
+                addRow.appendChild(addButton);
+                wrapper.appendChild(addRow);
+
+                const preview = document.createElement('div');
+                preview.className = 'likert-preview';
+                const title = document.createElement('span');
+                title.className = 'likert-preview-title';
+                title.textContent = 'Preview';
+                const options = document.createElement('div');
+                options.className = 'likert-preview-options';
+                options.dataset.role = 'likert-preview';
+                preview.appendChild(title);
+                preview.appendChild(options);
+                wrapper.appendChild(preview);
+
+                updateLikertPreview(wrapper);
+
+                return wrapper;
+            }
+
+            function renderQuestionFields(card, type) {
+                const container = card.querySelector('[data-role="question-fields"]');
+                if (!container) {
+                    return;
+                }
+                container.innerHTML = '';
+                card.dataset.questionType = type;
+
+                if (type === 'short_text') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'question-field';
+                    input.placeholder = 'Short answer text';
+                    input.setAttribute('aria-label', 'Short answer text preview');
+                    input.disabled = true;
+                    container.appendChild(input);
+                    return;
+                }
+
+                if (type === 'multiple_choice') {
+                    const list = document.createElement('ul');
+                    list.className = 'options-list';
+                    list.dataset.role = 'options-list';
+                    list.appendChild(createOptionItem('Option 1'));
+                    list.appendChild(createOptionItem('Option 2'));
+                    container.appendChild(list);
+
+                    const addOption = document.createElement('button');
+                    addOption.type = 'button';
+                    addOption.className = 'add-inline-button';
+                    addOption.dataset.action = 'add-option';
+                    addOption.innerHTML = '<span aria-hidden="true">+</span> Add Option';
+                    container.appendChild(addOption);
+                    return;
+                }
+
+                if (type === 'likert') {
+                    container.appendChild(buildLikertEditor());
+                    return;
+                }
+            }
+
+            function createQuestionCard(type) {
+                const card = document.createElement('article');
+                card.className = 'question-card';
+                card.dataset.questionId = nextQuestionId();
+                card.dataset.questionType = type;
+
+                card.innerHTML = '' +
+                    '<div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>' +
+                    '<div class="question-card__body">' +
+                        '<input type="text" class="question-title-input" value="Untitled Question" aria-label="Question title">' +
+                        '<div class="question-dynamic" data-role="question-fields"></div>' +
+                    '</div>' +
+                    '<div class="question-card__meta">' +
+                        '<select class="question-type-select" aria-label="Question type">' +
+                            '<option value="short_text"' + (type === 'short_text' ? ' selected' : '') + '>Short Text</option>' +
+                            '<option value="multiple_choice"' + (type === 'multiple_choice' ? ' selected' : '') + '>Multiple Choice</option>' +
+                            '<option value="likert"' + (type === 'likert' ? ' selected' : '') + '>Likert Scale</option>' +
+                        '</select>' +
+                        '<div class="question-actions">' +
+                            '<button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>' +
+                            '<button type="button" data-action="delete" aria-label="Delete question">🗑</button>' +
+                        '</div>' +
+                        '<label class="required-toggle">' +
+                            'Required' +
+                            '<span class="switch">' +
+                                '<input type="checkbox">' +
+                                '<span class="slider"></span>' +
+                            '</span>' +
+                        '</label>' +
+                    '</div>';
+
+                renderQuestionFields(card, type);
+                card.dataset.initialized = 'true';
+                card.setAttribute('draggable', 'false');
+
+                const requiredToggle = card.querySelector('.required-toggle input');
+                if (requiredToggle) {
+                    requiredToggle.checked = false;
+                }
+
+                return card;
+            }
+
+            function refreshDeleteButtons() {
+                const cards = stack.querySelectorAll('.question-card');
+                const disableDelete = cards.length <= 1;
+                cards.forEach(function(card) {
+                    const btn = card.querySelector('[data-action="delete"]');
+                    if (btn) {
+                        btn.disabled = disableDelete;
+                        btn.setAttribute('aria-disabled', disableDelete ? 'true' : 'false');
+                    }
+                });
+            }
+
+            function focusTitle(card) {
+                const input = card.querySelector('.question-title-input');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }
+
+            function addNewQuestion(type) {
+                const card = createQuestionCard(type);
+                stack.insertBefore(card, dropMarker);
+                refreshDeleteButtons();
+                ensureDropMarkerResting();
+                focusTitle(card);
+            }
+
+            function hydrateSurvey(data) {
+                if (!data) {
+                    refreshDeleteButtons();
+                    ensureDropMarkerResting();
+                    showView('questions');
+                    return;
+                }
+
+                currentSurveyId = data.id || null;
+
+                if (titleInput) {
+                    titleInput.value = data.title || 'Untitled Form';
+                }
+                if (descriptionInput) {
+                    const limit = typeof descriptionInput.maxLength === 'number' && descriptionInput.maxLength > 0
+                        ? descriptionInput.maxLength
+                        : undefined;
+                    const descriptionValue = (data.description || '');
+                    descriptionInput.value = limit ? descriptionValue.slice(0, limit) : descriptionValue;
+                }
+                if (dueDateInput) {
+                    dueDateInput.value = data.due_date || '';
+                }
+
+                const selectedSections = new Set(Array.isArray(data.sections) ? data.sections : []);
+                Array.prototype.forEach.call(sectionInputs, function(input) {
+                    input.checked = selectedSections.has(input.value);
+                });
+
+                const existingCards = Array.from(stack.querySelectorAll('.question-card'));
+                existingCards.forEach(function(card) {
+                    card.remove();
+                });
+
+                questionCounter = 0;
+
+                const questions = Array.isArray(data.questions) ? data.questions : [];
+                if (questions.length) {
+                    questions.forEach(function(question) {
+                        const type = question.question_type || 'short_text';
+                        const card = createQuestionCard(type);
+                        const titleField = card.querySelector('.question-title-input');
+                        if (titleField) {
+                            titleField.value = question.title || '';
+                        }
+                        const requiredToggle = card.querySelector('.required-toggle input');
+                        if (requiredToggle) {
+                            requiredToggle.checked = !!question.is_required;
+                        }
+
+                        if (type === 'multiple_choice') {
+                            const list = card.querySelector('.options-list');
+                            if (list) {
+                                list.innerHTML = '';
+                                const choices = (question.choices && question.choices.length ? question.choices : ['Option 1', 'Option 2']);
+                                choices.forEach(function(choiceText, index) {
+                                    list.appendChild(createOptionItem(choiceText || ('Option ' + (index + 1))));
+                                });
+                            }
+                        } else if (type === 'likert') {
+                            const editor = card.querySelector('.likert-editor');
+                            if (editor) {
+                                const list = editor.querySelector('[data-role="likert-list"]');
+                                if (list) {
+                                    list.innerHTML = '';
+                                    const labels = (question.scale_labels && question.scale_labels.length ? question.scale_labels : ['Label 1', 'Label 2']);
+                                    labels.forEach(function(labelText) {
+                                        list.appendChild(createLikertRow(labelText));
+                                    });
+                                }
+                                updateLikertPreview(editor);
+                            }
+                        }
+
+                        stack.insertBefore(card, dropMarker);
+                    });
+                } else {
+                    const card = createQuestionCard('short_text');
+                    stack.insertBefore(card, dropMarker);
+                }
+
+                refreshDeleteButtons();
+                ensureDropMarkerResting();
+                showView('questions');
+            }
+
+            stack.querySelectorAll('.question-card').forEach(function(card) {
+                const select = card.querySelector('.question-type-select');
+                const currentType = select ? (select.value || card.dataset.questionType || 'short_text') : (card.dataset.questionType || 'short_text');
+                if (select) {
+                    select.value = currentType;
+                }
+                if (!card.dataset.initialized) {
+                    renderQuestionFields(card, currentType);
+                    card.dataset.initialized = 'true';
+                }
+                card.setAttribute('draggable', 'false');
+            });
+
+            const hasPreloadedQuestions = stack.querySelector('.question-card[data-initialized="true"]') !== null;
+
+            if (initialSurveyData) {
+                if (!hasPreloadedQuestions) {
+                    hydrateSurvey(initialSurveyData);
+                } else {
+                    stack.querySelectorAll('.likert-editor').forEach(function(editor) {
+                        updateLikertPreview(editor);
+                    });
+                    refreshDeleteButtons();
+                    ensureDropMarkerResting();
+                    showView('questions');
+                }
+            } else {
+                refreshDeleteButtons();
+                ensureDropMarkerResting();
+                showView('questions');
+            }
+
+            if (descriptionInput) {
+                descriptionInput.addEventListener('input', function() {
+                    if (this.value.length > 30) {
+                        this.value = this.value.slice(0, 30);
+                    }
+                });
+            }
+
+            if (addButton) {
+                addButton.addEventListener('click', function() {
+                    addNewQuestion('short_text');
+                });
+            }
+
+            tabButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const view = button.dataset.view || 'questions';
+                    showView(view);
+                });
+            });
+
+            stack.addEventListener('change', function(event) {
+                if (event.target.matches('.question-type-select')) {
+                    const card = event.target.closest('.question-card');
+                    if (card) {
+                        const newType = event.target.value;
+                        renderQuestionFields(card, newType);
+                        card.dataset.questionType = newType;
+                    }
+                }
+
+            });
+
+            stack.addEventListener('click', function(event) {
+                const target = event.target;
+                const action = target.dataset.action;
+                if (!action) {
+                    return;
+                }
+                const card = target.closest('.question-card');
+                if (!card) {
+                    return;
+                }
+
+                if (action === 'duplicate') {
+                    const clone = card.cloneNode(true);
+                    clone.dataset.questionId = nextQuestionId();
+                    clone.dataset.initialized = 'true';
+                    clone.classList.remove('dragging');
+                    clone.setAttribute('draggable', 'false');
+                    const select = clone.querySelector('.question-type-select');
+                    if (select) {
+                        clone.dataset.questionType = select.value;
+                    }
+                    stack.insertBefore(clone, card.nextSibling === dropMarker ? dropMarker : card.nextSibling);
+                    const clonedEditor = clone.querySelector('.likert-editor');
+                    if (clonedEditor) {
+                        updateLikertPreview(clonedEditor);
+                    }
+                    refreshDeleteButtons();
+                    ensureDropMarkerResting();
+                    focusTitle(clone);
+                    return;
+                }
+
+                if (action === 'delete') {
+                    if (target.disabled) {
+                        return;
+                    }
+                    const cards = stack.querySelectorAll('.question-card');
+                    if (cards.length <= 1) {
+                        return;
+                    }
+                    card.remove();
+                    refreshDeleteButtons();
+                    ensureDropMarkerResting();
+                    return;
+                }
+
+                if (action === 'add-option') {
+                    const list = card.querySelector('.options-list');
+                    if (!list) {
+                        return;
+                    }
+                    const nextIndex = list.querySelectorAll('.options-item').length + 1;
+                    const item = createOptionItem('Option ' + nextIndex);
+                    list.appendChild(item);
+                    const input = item.querySelector('input');
+                    if (input) {
+                        input.focus();
+                    }
+                    return;
+                }
+
+                if (action === 'remove-option') {
+                    const list = card.querySelector('.options-list');
+                    if (!list) {
+                        return;
+                    }
+                    const items = list.querySelectorAll('.options-item');
+                    if (items.length <= 1) {
+                        return;
+                    }
+                    const item = target.closest('.options-item');
+                    if (item) {
+                        item.remove();
+                    }
+                    return;
+                }
+
+                if (action === 'likert-add') {
+                    const editor = target.closest('.likert-editor');
+                    if (!editor) {
+                        return;
+                    }
+                    const list = editor.querySelector('[data-role="likert-list"]');
+                    if (!list) {
+                        return;
+                    }
+                    list.appendChild(createLikertRow(''));
+                    updateLikertPreview(editor);
+                    const lastInput = list.querySelector('.likert-editor-row:last-child input');
+                    if (lastInput) {
+                        lastInput.focus();
+                    }
+                    return;
+                }
+
+                if (action === 'likert-remove') {
+                    const editor = target.closest('.likert-editor');
+                    if (!editor) {
+                        return;
+                    }
+                    const rows = editor.querySelectorAll('.likert-editor-row');
+                    if (rows.length <= 2) {
+                        return;
+                    }
+                    const row = target.closest('.likert-editor-row');
+                    if (row) {
+                        row.remove();
+                        updateLikertPreview(editor);
+                    }
+                    return;
+                }
+            });
+
+            stack.addEventListener('input', function(event) {
+                if (event.target.dataset && event.target.dataset.role === 'likert-input') {
+                    const editor = event.target.closest('.likert-editor');
+                    updateLikertPreview(editor);
+                }
+            });
+
+            let draggedCard = null;
+            let dragReadyCard = null;
+
+            stack.addEventListener('pointerdown', function(event) {
+                const card = event.target.closest('.question-card');
+                if (!card) {
+                    return;
+                }
+                if (event.target.closest('.question-card__handle')) {
+                    dragReadyCard = card;
+                    card.setAttribute('draggable', 'true');
+                } else {
+                    card.setAttribute('draggable', 'false');
+                }
+            });
+
+            function resetDragReady() {
+                if (dragReadyCard) {
+                    dragReadyCard.setAttribute('draggable', 'false');
+                    dragReadyCard = null;
+                }
+            }
+
+            stack.addEventListener('pointerup', resetDragReady);
+            stack.addEventListener('pointercancel', resetDragReady);
+
+            stack.addEventListener('dragstart', function(event) {
+                const card = event.target.closest('.question-card');
+                if (!card || card !== dragReadyCard) {
+                    event.preventDefault();
+                    return;
+                }
+                draggedCard = card;
+                card.classList.add('dragging');
+                dropMarker.classList.add('is-visible');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', card.dataset.questionId || '');
+            });
+
+            stack.addEventListener('dragover', function(event) {
+                if (!draggedCard) {
+                    return;
+                }
+                event.preventDefault();
+                const afterElement = getDragAfterElement(stack, event.clientY);
+                if (afterElement) {
+                    stack.insertBefore(dropMarker, afterElement);
+                } else {
+                    stack.appendChild(dropMarker);
+                }
+                dropMarker.classList.add('is-visible');
+            });
+
+            stack.addEventListener('drop', function(event) {
+                if (!draggedCard) {
+                    return;
+                }
+                event.preventDefault();
+                stack.insertBefore(draggedCard, dropMarker);
+                draggedCard.classList.remove('dragging');
+                draggedCard = null;
+                resetDragReady();
+                refreshDeleteButtons();
+                ensureDropMarkerResting();
+            });
+
+            stack.addEventListener('dragend', function() {
+                if (draggedCard) {
+                    draggedCard.classList.remove('dragging');
+                    draggedCard = null;
+                }
+                resetDragReady();
+                ensureDropMarkerResting();
+            });
+
+            function getDragAfterElement(container, y) {
+                const cards = [].slice.call(container.querySelectorAll('.question-card:not(.dragging)'));
+                let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+                cards.forEach(function(child) {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        closest = { offset: offset, element: child };
+                    }
+                });
+
+                return closest.element;
+            }
+
+            const routes = {
+                save: "{% url 'teacher_save_survey' %}",
+                previewTemplate: "{% url 'teacher_preview_survey' 0 %}",
+                collection: "{% url 'teacher_dashboard_page' 'collection' %}",
+            };
+
+            let currentSurveyId = initialSurveyData ? initialSurveyData.id : null;
+            let isSaving = false;
+
+            function getCsrfToken() {
+                const match = document.cookie.match(/csrftoken=([^;]+)/);
+                return match ? match[1] : '';
+            }
+
+            function collectSurveyData() {
+                const payload = {
+                    title: (titleInput ? titleInput.value : '').trim(),
+                    description: (descriptionInput ? descriptionInput.value : '').trim(),
+                    due_date: dueDateInput && dueDateInput.value ? dueDateInput.value : null,
+                    sections: Array.from(sectionInputs).filter(function(input) { return input.checked; }).map(function(input) { return input.value; }),
+                    questions: [],
+                };
+
+                const cards = stack.querySelectorAll('.question-card');
+                cards.forEach(function(card, index) {
+                    const typeValue = card.dataset.questionType || (card.querySelector('.question-type-select') || {}).value || 'short_text';
+                    const questionTitle = (card.querySelector('.question-title-input') || {}).value || '';
+                    const isRequired = !!(card.querySelector('.required-toggle input') || { checked: false }).checked;
+
+                    const questionPayload = {
+                        question_type: typeValue,
+                        title: questionTitle.trim() || 'Untitled Question',
+                        is_required: isRequired,
+                        order: index + 1,
+                    };
+
+                    if (typeValue === 'multiple_choice') {
+                        const choices = Array.from(card.querySelectorAll('.options-list .question-field')).map(function(input) {
+                            return input.value.trim();
+                        }).filter(Boolean);
+                        questionPayload.choices = choices;
+                    } else if (typeValue === 'likert') {
+                        const labels = Array.from(card.querySelectorAll('.likert-editor-row input[data-role="likert-input"]')).map(function(input) {
+                            return input.value.trim();
+                        }).filter(Boolean);
+                        questionPayload.scale_labels = labels;
+                    } else if (typeValue === 'short_text') {
+                        questionPayload.max_length = 500;
+                    }
+
+                    payload.questions.push(questionPayload);
+                });
+
+                return payload;
+            }
+
+            function validateSurveyData(payload, status) {
+                if (!payload.title) {
+                    throw new Error('Please provide a survey title.');
+                }
+                if (payload.questions.length === 0) {
+                    throw new Error('Add at least one question before saving.');
+                }
+                if (status === 'published' && payload.sections.length === 0) {
+                    throw new Error('Select at least one section before publishing.');
+                }
+                if (status === 'published') {
+                    const invalidQuestion = payload.questions.find(function(question) {
+                        if (question.question_type === 'multiple_choice') {
+                            return !question.choices || question.choices.length < 2;
+                        }
+                        if (question.question_type === 'likert') {
+                            return !question.scale_labels || question.scale_labels.length < 2;
+                        }
+                        return false;
+                    });
+                    if (invalidQuestion) {
+                        throw new Error('Please provide enough answer options for each question before publishing.');
+                    }
+                }
+            }
+
+            function showMessage(message) {
+                window.alert(message);
+            }
+
+            async function submitSurvey(status, options) {
+                if (isSaving) {
+                    return;
+                }
+                options = options || {};
+                const payload = collectSurveyData();
+                payload.status = status;
+                if (currentSurveyId) {
+                    payload.survey_id = currentSurveyId;
+                }
+
+                try {
+                    validateSurveyData(payload, status);
+                } catch (validationError) {
+                    showMessage(validationError.message);
+                    return;
+                }
+
+                isSaving = true;
+                let previewWindow = null;
+                if (options.preview) {
+                    previewWindow = window.open('', '_blank');
+                }
+
+                try {
+                    const response = await fetch(routes.save, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken(),
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) {
+                        if (previewWindow && !previewWindow.closed) {
+                            previewWindow.close();
+                        }
+                        throw new Error(result.error || 'Something went wrong while saving the survey.');
+                    }
+
+                    currentSurveyId = result.id;
+
+                    if (options.preview) {
+                        const previewUrl = routes.previewTemplate.replace('/0/', `/${currentSurveyId}/`);
+                        if (previewWindow && !previewWindow.closed) {
+                            previewWindow.location.href = previewUrl;
+                        } else {
+                            window.open(previewUrl, '_blank');
+                        }
+                        showMessage('Latest changes saved. Opening preview.');
+                        return;
+                    }
+
+                    if (status === 'published') {
+                        showMessage('Survey published successfully!');
+                        window.location.href = routes.collection;
+                    } else {
+                        showMessage('Survey saved to drafts.');
+                    }
+                } catch (error) {
+                    if (previewWindow && !previewWindow.closed) {
+                        previewWindow.close();
+                    }
+                    showMessage(error.message);
+                } finally {
+                    isSaving = false;
+                }
+            }
+
+            if (saveDraftBtn) {
+                saveDraftBtn.addEventListener('click', function() {
+                    submitSurvey('draft');
+                });
+            }
+
+            if (publishBtn) {
+                publishBtn.addEventListener('click', function() {
+                    submitSurvey('published');
+                });
+            }
+
+            if (previewBtn) {
+                previewBtn.addEventListener('click', function() {
+                    submitSurvey('draft', { preview: true });
+                });
+            }
         }());
     </script>
 </body>

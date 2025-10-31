@@ -218,6 +218,10 @@
             align-items: stretch;
         }
 
+        .signup-section-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         .field-group--split .split-field {
             flex: 1 1 0;
             display: flex;
@@ -379,6 +383,10 @@
             }
 
             .field-group--split {
+                grid-template-columns: 1fr;
+            }
+
+            .signup-section-row {
                 grid-template-columns: 1fr;
             }
         }

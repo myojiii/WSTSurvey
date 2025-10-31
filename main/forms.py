@@ -1,33 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.db.utils import OperationalError
 
-
-YEAR_CHOICES = [
-    ("", "Select year"),
-    ("1st Year", "1st Year"),
-    ("2nd Year", "2nd Year"),
-    ("3rd Year", "3rd Year"),
-    ("4th Year", "4th Year"),
-]
-
-SECTION_CHOICES = [
-    ("", "Select section"),
-    ("A", "Section A"),
-    ("B", "Section B"),
-    ("C", "Section C"),
-    ("D", "Section D"),
-    ("E", "Section E"),
-    ("F", "Section F"),
-    ("G", "Section G"),
-    ("H", "Section H"),
-    ("I", "Section I"),
-]
-
-GROUP_CHOICES = [
-    ("", "Select group"),
-    ("1", "Group 1"),
-    ("2", "Group 2"),
-]
+from .models import ClassSection
 
 
 class StudentSignupForm(forms.Form):
@@ -36,9 +11,27 @@ class StudentSignupForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
-    year = forms.ChoiceField(choices=YEAR_CHOICES)
-    section = forms.ChoiceField(choices=SECTION_CHOICES)
-    group = forms.ChoiceField(choices=GROUP_CHOICES)
+    year = forms.ChoiceField(choices=[("", "Select year")])
+    section = forms.ChoiceField(choices=[("", "Select section")])
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            ClassSection.ensure_seeded()
+            sections = list(ClassSection.objects.order_by("section_id"))
+        except Exception:
+            letters = ["A", "B", "C", "D"]
+            sections = [
+                ClassSection(section_id=f"{year}{letter}", year=year)
+                for year in range(1, 5)
+                for letter in letters
+            ]
+
+        years = sorted({section.year for section in sections})
+        self.fields["year"].choices = [("", "Select year")] + [(str(y), str(y)) for y in years]
+        self.fields["section"].choices = [("", "Select section")] + [
+            (section.section_id, section.display_label) for section in sections
+        ]
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
@@ -59,22 +52,29 @@ class StudentSignupForm(forms.Form):
         return last_name
 
     def clean_year(self):
-        value = self.cleaned_data.get("year", "").strip()
+        value = (self.cleaned_data.get("year") or "").strip()
         if not value:
             raise forms.ValidationError("Please select your year level.")
         return value
 
     def clean_section(self):
-        value = self.cleaned_data.get("section", "").strip()
-        if not value:
+        section_id = (self.cleaned_data.get("section") or "").strip()
+        year = self.cleaned_data.get("year")
+        if not section_id:
             raise forms.ValidationError("Please select your section.")
-        return value
-
-    def clean_group(self):
-        value = self.cleaned_data.get("group", "").strip()
-        if not value:
-            raise forms.ValidationError("Please select your group.")
-        return value
+        try:
+            section = ClassSection.objects.get(section_id=section_id)
+        except ClassSection.DoesNotExist:
+            ClassSection.ensure_seeded()
+            try:
+                section = ClassSection.objects.get(section_id=section_id)
+            except ClassSection.DoesNotExist:
+                raise forms.ValidationError("Unknown section selected.")
+        except OperationalError:
+            raise forms.ValidationError("Section data is unavailable. Please contact the administrator to run migrations.")
+        if year and str(section.year) != str(year):
+            raise forms.ValidationError("Selected section does not belong to the chosen year.")
+        return section
 
     def clean(self):
         cleaned_data = super().clean()
@@ -82,12 +82,6 @@ class StudentSignupForm(forms.Form):
         confirm_password = cleaned_data.get("confirm_password")
         if password and confirm_password and password != confirm_password:
             self.add_error("confirm_password", "Passwords do not match.")
-
-        year = cleaned_data.get("year")
-        section = cleaned_data.get("section")
-        group = cleaned_data.get("group")
-        if year and section and group:
-            cleaned_data["year_section"] = f"{year} - Section {section} - Group {group}"
 
         return cleaned_data
 
