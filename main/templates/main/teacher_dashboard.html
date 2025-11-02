@@ -1575,6 +1575,7 @@
                 }
 
                 if (action === 'duplicate') {
+                    const originalType = card.dataset.questionType || (card.querySelector('.question-type-select') || {}).value || 'short_text';
                     const clone = card.cloneNode(true);
                     clone.dataset.questionId = nextQuestionId();
                     clone.dataset.initialized = 'true';
@@ -1582,8 +1583,9 @@
                     clone.setAttribute('draggable', 'false');
                     const select = clone.querySelector('.question-type-select');
                     if (select) {
-                        clone.dataset.questionType = select.value;
+                        select.value = originalType;
                     }
+                    clone.dataset.questionType = originalType;
                     stack.insertBefore(clone, card.nextSibling === dropMarker ? dropMarker : card.nextSibling);
                     const clonedEditor = clone.querySelector('.likert-editor');
                     if (clonedEditor) {
