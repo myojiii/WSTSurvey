@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
+from collections import Counter
 
 from .forms import StudentSigninForm, StudentSignupForm
 from .models import (
@@ -570,13 +571,13 @@ def teacher_dashboard(request, page="new"):
         return redirect("student_signin")
 
     page = page.lower()
-    allowed_pages = {"collection", "assigned", "history", "new"}
+    allowed_pages = {"dashboard", "collection", "history", "new"}
     if page not in allowed_pages:
         page = "new"
 
     teacher_nav = [
+        {"slug": "dashboard", "label": "Dashboard", "icon": "📊"},
         {"slug": "collection", "label": "Survey Collection", "icon": "📚"},
-        {"slug": "assigned", "label": "Assigned Surveys", "icon": "📊"},
         {"slug": "history", "label": "Responses History", "icon": "📁"},
         {"slug": "new", "label": "New Survey", "icon": "➕"},
     ]
@@ -591,6 +592,29 @@ def teacher_dashboard(request, page="new"):
             for year in range(1, 5)
             for letter in letters
         ]
+    recent_survey = None
+    submissions = []
+    answers = []
+    if page == "dashboard":
+        recent_survey = (
+            Survey.objects
+            .filter(teacher=request.user)
+            .order_by("-created_at")
+            .prefetch_related("questions__choices")
+            .last() #last muna kase eto palang may submissions. first dapat kapag recent
+        )
+
+        if recent_survey:
+            # Get all submissions related to this survey
+            submissions = (
+                SurveySubmission.objects
+                .filter(survey=recent_survey)
+                .select_related("student__user")
+                .prefetch_related("answers__question", "answers__selected_choice")
+            )
+
+            # Flatten all answers from those submissions
+            answers = [answer for submission in submissions for answer in submission.answers.all()]
 
     collection_surveys = []
     if page == "collection":
@@ -685,6 +709,8 @@ def teacher_dashboard(request, page="new"):
             "sections": sections,
             "collection_surveys": collection_surveys,
             "editing_payload": editing_payload,
+            "recent_survey": recent_survey,
+            "answers": answers
         },
     )
 
@@ -843,6 +869,71 @@ def teacher_preview_survey(request, survey_id):
             "is_preview": request.user.username == _teacher_username(),
         },
     )
+
+
+@login_required(login_url="student_signin")
+def teacher_analytics(request, survey_id):
+    template = "main/teacher_analytics.html"
+    survey = (
+        Survey.objects
+        .filter(teacher=request.user, id=survey_id)
+        .prefetch_related("questions__choices")
+        .first()
+    )
+
+    submissions = []
+    answers = []
+    summary_list = []
+
+    if survey:
+        submissions = (
+            SurveySubmission.objects
+            .filter(survey=survey)
+            .select_related("student__user")
+            .prefetch_related("answers__question", "answers__selected_choice")
+        )
+
+        for submission in submissions:
+            for answer in submission.answers.all():
+                answers.append(answer)
+
+        print(len(submissions))
+        print(len(answers))
+
+        # make summary grouped by question type
+        for question in survey.questions.all():
+            question_answers = [a for a in answers if a.question_id == question.id]
+
+            if question.question_type in ["MCQ", "LIKERT"]:
+
+                choice_counts = Counter(a.selected_choice.text for a in question_answers if a.selected_choice)
+                # Convert dict to a list of tuples for template iteration
+                summary_list.append({
+                    "question": question,
+                    "type": question.question_type,
+                    "choices": list(choice_counts.items()),  # [(choice_text, count), ...]
+                })
+
+            elif question.question_type == "SHORT":
+                short_texts = [a.text_response for a in question_answers if a.text_response]
+                summary_list.append({
+                    "question": question,
+                    "type": "SHORT",
+                    "short_answers": short_texts,
+                })
+
+            print(f"Question {question.id}: {len(question_answers)} answers")
+            # for a in question_answers:
+            #     print(f"- selected_choice: {a.selected_choice}, text_response: {a.text_response}")
+
+
+    context = {
+        "survey": survey,
+        "submissions": submissions,
+        "summary_list": summary_list,
+    }
+
+    return render(request, template, context)
 
 
 def logout_view(request):

@@ -908,8 +908,8 @@
                 <h1>
                     {% if active_page == 'collection' %}
                         Survey Collection
-                    {% elif active_page == 'assigned' %}
-                        Assigned Surveys
+                    {% elif active_page == 'dashboard' %}
+                        Dashboard
                     {% elif active_page == 'history' %}
                         Responses History
                     {% else %}
@@ -927,6 +927,7 @@
                         {% endif %}
                         <button class="secondary-action" type="button" id="preview-btn">Preview</button>
                         <button class="secondary-action" type="button" id="save-draft-btn">Save to Draft</button>
+                        <button class="secondary-action" type="button" id="view-responses-btn" >View Responses</button>
                         <button class="primary-action" type="button" id="publish-btn">Publish</button>
                     </div>
                 {% else %}
@@ -1158,6 +1159,7 @@
             const saveDraftBtn = document.getElementById('save-draft-btn');
             const publishBtn = document.getElementById('publish-btn');
             const previewBtn = document.getElementById('preview-btn');
+            const responsesBtn = document.getElementById('view-responses-btn');
             const sectionInputs = builder.querySelectorAll('input[name="assigned_sections"]');
             if (!stack || !dropMarker) {
                 return;
@@ -1949,6 +1951,13 @@
                     submitSurvey('draft', { preview: true });
                 });
             }
+
+            if (responsesBtn) {
+                responsesBtn.onclick = function() {
+                    window.location.href = `/teacher/surveys/${currentSurveyId}/responses`;
+                }
+            }
+
         }());
     </script>
 </body>
