@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --accent: #1b9a7f;
@@ -17,7 +18,9 @@
             --text: #1c3c33;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -161,50 +164,128 @@
     </style>
 </head>
 <body>
-    <div class="response-shell">
-        <div class="survey-header">
-            <span class="badge">Responses</span>
-            <h1>{{ survey.title }}</h1>
-            <div class="meta-line">
-                <!-- <span>Submitted {{ submission.submitted_at|date:"M d, Y H:i" }}</span> -->
-                <span>Prepared by {{ survey.teacher }}</span>
-            </div>
+<div class="response-shell">
+    <div class="survey-header">
+        <span class="badge">Responses</span>
+        <h1>{{ survey.title }}</h1>
+        <div class="meta-line">
+            <!-- <span>Submitted {{ submission.submitted_at|date:"M d, Y H:i" }}</span> -->
+            <span>Prepared by {{ survey.teacher }}</span>
         </div>
+    </div>
 
-        {% for summary in summary_list %}
-            <article class="question-card">
-                <h2>{{ forloop.counter }}. {{ summary.question.text }}</h2>
-                {% if summary.question.description %}
-                    <p class="description">{{ summary.question.description }}</p>
-                {% endif %}
+    {% for summary in summary_list %}
+        <article class="question-card">
+            <h2>{{ forloop.counter }}. {{ summary.question.text }}</h2>
+            {% if summary.question.description %}
+                <p class="description">{{ summary.question.description }}</p>
+            {% endif %}
 
-                <small>
-                    {% if summary.type == "MCQ" %}Multiple choice{% elif summary.type == "LIKERT" %}Likert scale{% else %}Short answer{% endif %}
-                    {% if summary.question.is_required %} · Required{% endif %}
-                </small>
+            <small>
+                {% if summary.type == "MCQ" %}Multiple choice{% elif summary.type == "LIKERT" %}Likert scale{% else %}
+                    Short answer{% endif %}
+                {% if summary.question.is_required %} · Required{% endif %}
+            </small>
 
-                {% if summary.type == "MCQ" or summary.type == "LIKERT" %}
-                    <ul class="options-list">
+            {% if summary.type == "MCQ" or summary.type == "LIKERT" %}
+                <!-- <ul class="options-list">
                         {% for choice_text, count in summary.choices %}
                             <li>
                                 <span>{{ choice_text }}</span> — {{ count }} responses
                             </li>
                         {% endfor %}
-                    </ul>
-                {% elif summary.type == "SHORT" %}
-                    <div class="short-answers">
-                        {% for text in summary.short_answers %}
-                            <p>{{ text }}</p>
-                        {% empty %}
-                            <p>(No responses yet)</p>
-                        {% endfor %}
-                    </div>
+                    </ul> -->
+                <div style="width: 100%; max-width: 550px; margin: 0 auto; text-align: center; height: 300px;">
+                    <canvas id="chart{{ forloop.counter }}"></canvas>
+                </div>
+
+
+            {% elif summary.type == "SHORT" %}
+                <div class="short-answers">
+                    {% for text in summary.short_answers %}
+                        <p>{{ text }}</p>
+                    {% empty %}
+                        <p>(No responses yet)</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </article>
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            {% for summary in summary_list %}
+                {% if summary.type == "MCQ" %}
+                    new Chart(
+                        document.getElementById("chart{{ forloop.counter }}"),
+                        {
+                            type: 'pie',
+                            data: {
+                                labels: {{ summary.choice_labels|safe }},
+                                datasets: [{
+                                    label: 'Responses',
+                                    data: {{ summary.choice_values|safe }},
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {position: 'right'},
+                                    datalabels: {
+                                        color: '#fff',
+                                        font: {weight: 'bold'},
+                                        formatter: (value, context) => {
+                                            const datapoints = context.chart.data.datasets[0].data;
+                                            const total = datapoints.reduce((sum, val) => sum + val, 0);
+                                            const percentage = total ? (value / total * 100).toFixed(0) : 0;
+                                            return `${percentage}%`;
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: [ChartDataLabels]
+                        }
+                    );
+                {% elif summary.type == "LIKERT" %}
+                    new Chart(
+                        document.getElementById("chart{{ forloop.counter }}"),
+                        {
+                            type: 'bar',
+                            data: {
+                                labels: {{ summary.choice_labels|safe }},
+                                datasets: [{
+                                    label: 'Responses',
+                                    data: {{ summary.choice_values|safe }},
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {stepSize: 1}
+                                    }
+                                },
+                                plugins: {
+                                    legend: {display: false}
+                                }
+                            }
+                        }
+                    );
                 {% endif %}
+            {% endfor %}
+        });
+    </script>
 
-            </article>
-        {% endfor %}
 
-        <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link">← Back to Survey Collection</a>
-    </div>
+    <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link">← Back to Survey Collection</a>
+</div>
 </body>
 </html>

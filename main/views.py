@@ -905,14 +905,27 @@ def teacher_analytics(request, survey_id):
             question_answers = [a for a in answers if a.question_id == question.id]
 
             if question.question_type in ["MCQ", "LIKERT"]:
+                # Start with all choices set to 0
+                choice_counts = {c.text: 0 for c in question.choices.all()}
 
-                choice_counts = Counter(a.selected_choice.text for a in question_answers if a.selected_choice)
-                # Convert dict to a list of tuples for template iteration
+                # Count actual responses
+                for a in question_answers:
+                    if a.selected_choice:
+                        choice_counts[a.selected_choice.text] += 1
+
+                # Convert dict to lists for chart display
+                choice_labels = list(choice_counts.keys())
+                choice_values = list(choice_counts.values())
+
                 summary_list.append({
                     "question": question,
                     "type": question.question_type,
-                    "choices": list(choice_counts.items()),  # [(choice_text, count), ...]
+                    "choices": list(choice_counts.items()),
+                    "choice_labels": choice_labels,
+                    "choice_values": choice_values,
                 })
+
+
 
             elif question.question_type == "SHORT":
                 short_texts = [a.text_response for a in question_answers if a.text_response]
