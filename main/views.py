@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -7,7 +7,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -494,18 +496,33 @@ def student_take_survey(request, assignment_id):
 
 @login_required(login_url="student_signin")
 def student_view_response(request, submission_id):
-    if not hasattr(request.user, "student_profile"):
-        if request.user.username == _teacher_username():
-            return redirect("teacher_dashboard")
+    # Allow both students and teachers to view responses
+    is_teacher = request.user.username == _teacher_username()
+    
+    if not is_teacher and not hasattr(request.user, "student_profile"):
         return redirect("student_signin")
 
-    profile = request.user.student_profile
-    submission = get_object_or_404(
-        SurveySubmission.objects.select_related("survey", "survey__teacher", "student"),
-        id=submission_id,
-        student=profile,
-        is_submitted=True,
+    # Get the submission
+    submission_query = SurveySubmission.objects.select_related(
+        "survey", "survey__teacher", "student", "student__user", "student__section"
     )
+    
+    if is_teacher:
+        # Teacher can view any submission
+        submission = get_object_or_404(
+            submission_query,
+            id=submission_id,
+            is_submitted=True,
+        )
+    else:
+        # Student can only view their own submission
+        profile = request.user.student_profile
+        submission = get_object_or_404(
+            submission_query,
+            id=submission_id,
+            student=profile,
+            is_submitted=True,
+        )
 
     survey = submission.survey
     question_qs = (
@@ -538,7 +555,9 @@ def student_view_response(request, submission_id):
     else:
         teacher_name = "Administrator"
 
-    assignment = SurveyAssignment.objects.filter(section=profile.section, survey=survey).select_related("section").first()
+    assignment = SurveyAssignment.objects.filter(
+        section=submission.student.section, survey=survey
+    ).select_related("section").first()
 
     return render(
         request,
@@ -549,6 +568,7 @@ def student_view_response(request, submission_id):
             "teacher_name": teacher_name,
             "assignment": assignment,
             "submission": submission,
+            "is_teacher_viewing": is_teacher,
         },
     )
 
@@ -570,6 +590,7 @@ def teacher_dashboard(request, page="new"):
         return redirect("student_signin")
 
     page = page.lower()
+    
     allowed_pages = {"collection", "assigned", "history", "new"}
     if page not in allowed_pages:
         page = "new"
@@ -599,6 +620,55 @@ def teacher_dashboard(request, page="new"):
             .prefetch_related("assignments__section")
             .order_by("-updated_at")
         )
+
+    # Handle Responses History page
+    responses_data = None
+    paginator = None
+    all_sections = []
+    if page == "history":
+        responses = SurveySubmission.objects.filter(
+            is_submitted=True
+        ).select_related(
+            'student__user', 'student__section', 'survey'
+        ).order_by('-submitted_at')
+        
+        # Get all unique sections for the filter dropdown
+        all_sections = ClassSection.objects.order_by("section_id")
+        
+        # Search by student name only (first name or last name)
+        search_student = request.GET.get('search_student', '').strip()
+        if search_student:
+            responses = responses.filter(
+                Q(student__user__first_name__icontains=search_student) |
+                Q(student__user__last_name__icontains=search_student)
+            )
+        
+        # Filter by section
+        filter_section = request.GET.get('filter_section', '').strip()
+        if filter_section:
+            responses = responses.filter(student__section__section_id=filter_section)
+        
+        # Filter by date range
+        date_from = request.GET.get('date_from', '').strip()
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                responses = responses.filter(submitted_at__date__gte=date_from_obj.date())
+            except ValueError:
+                pass
+        
+        date_to = request.GET.get('date_to', '').strip()
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                responses = responses.filter(submitted_at__date__lte=date_to_obj.date())
+            except ValueError:
+                pass
+        
+        # Pagination
+        paginator = Paginator(responses, 10)
+        page_number = request.GET.get('page', 1)
+        responses_data = paginator.get_page(page_number)
 
     editing_payload = None
     if page == "new":
@@ -685,6 +755,9 @@ def teacher_dashboard(request, page="new"):
             "sections": sections,
             "collection_surveys": collection_surveys,
             "editing_payload": editing_payload,
+            "responses": responses_data,
+            "paginator": paginator,
+            "all_sections": all_sections,
         },
     )
 
@@ -850,3 +923,56 @@ def logout_view(request):
     if request.user.is_authenticated:
         auth_logout(request)
     return redirect("student_signin")
+
+
+@login_required(login_url="student_signin")
+def teacher_responses_history(request):
+    """View all student responses with search and filter capabilities"""
+    if request.user.username != _teacher_username():
+        if hasattr(request.user, "student_profile"):
+            return redirect("student_dashboard")
+        return redirect("student_signin")
+    
+    # Get all submitted responses using SurveySubmission
+    responses = SurveySubmission.objects.filter(
+        is_submitted=True
+    ).select_related(
+        'student__user', 'survey'
+    ).order_by('-submitted_at')
+    
+    # Search by student name
+    search_student = request.GET.get('search_student', '').strip()
+    if search_student:
+        responses = responses.filter(
+            Q(student__user__first_name__icontains=search_student) |
+            Q(student__user__last_name__icontains=search_student)
+        )
+    
+    # Filter by date range
+    date_from = request.GET.get('date_from', '').strip()
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            responses = responses.filter(submitted_at__date__gte=date_from_obj.date())
+        except ValueError:
+            pass
+    
+    date_to = request.GET.get('date_to', '').strip()
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            responses = responses.filter(submitted_at__date__lte=date_to_obj.date())
+        except ValueError:
+            pass
+    
+    # Pagination
+    paginator = Paginator(responses, 10)  # 10 responses per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'responses': page_obj,
+        'paginator': paginator,
+    }
+    
+    return render(request, 'main/teacher_responses_history.html', context)

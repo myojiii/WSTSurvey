@@ -105,11 +105,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'  # Change to Philippine timezone
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = True  # Keep this True to use timezone-aware datetimes
 
 
 # Static files (CSS, JavaScript, Images)
