@@ -189,7 +189,7 @@
             <small>
                 {% if summary.type == "MCQ" %}Multiple choice{% elif summary.type == "LIKERT" %}Likert scale{% else %}
                     Short answer{% endif %}
-                {% if summary.question.is_required %} · Required{% endif %}
+                • Total Responses: {{ submissions|length }}
             </small>
 
             {% if summary.type == "MCQ" or summary.type == "LIKERT" %}
@@ -249,6 +249,7 @@
                                         color: '#fff',
                                         font: {weight: 'bold'},
                                         formatter: (value, context) => {
+                                            if (value === 0) return null;
                                             const datapoints = context.chart.data.datasets[0].data;
                                             const total = datapoints.reduce((sum, val) => sum + val, 0);
                                             const percentage = total ? (value / total * 100).toFixed(0) : 0;
@@ -279,6 +280,7 @@
                                 scales: {
                                     y: {
                                         beginAtZero: true,
+                                        max: {{submissions|length}},
                                         ticks: {stepSize: 1}
                                     }
                                 },
