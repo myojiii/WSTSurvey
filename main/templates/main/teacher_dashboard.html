@@ -1119,7 +1119,7 @@
             {% elif active_page == 'history' %}
                 <section class="survey-builder">
                     <div class="survey-panel" data-panel="history">
-                        <div class="module-block" style="margin-bottom:1.2rem;">
+                        <div class="module-block" style="margin-bottom:0rem;">
                             <form method="GET" action="{% url 'teacher_dashboard_page' 'history' %}">
                                 <div style="display:grid; grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr auto; gap:1rem; align-items:end;">
                                     <div>
@@ -1160,12 +1160,12 @@
                         </div>
 
                         {% if responses %}
-                        <p style="margin:0 0 1rem; color:rgba(36, 70, 61, 0.7); font-size:0.9rem;">
+                        <p style="margin:0 0 0rem; color:rgba(36, 70, 61, 0.7); font-size:0.9rem;">
                             Showing {{ responses.start_index }} - {{ responses.end_index }} of {{ paginator.count }} response(s)
                         </p>
                         {% endif %}
 
-                        <table class="collection-table" style="margin-top:1rem;">
+                        <table class="collection-table">
                             <thead>
                                 <tr style="text-align:left;">
                                     <th>Student Name</th>
@@ -1949,6 +1949,7 @@
                     throw new Error('Add at least one question before saving.');
                 }
                 if (status === 'published' && payload.sections.length === 0) {
+                   
                     throw new Error('Select at least one section before publishing.');
                 }
                 if (status === 'published') {
