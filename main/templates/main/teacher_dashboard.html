@@ -1121,10 +1121,14 @@
                     <div class="survey-panel" data-panel="history">
                         <div class="module-block" style="margin-bottom:1.2rem;">
                             <form method="GET" action="{% url 'teacher_dashboard_page' 'history' %}">
-                                <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:1rem; align-items:end;">
+                                <div style="display:grid; grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr auto; gap:1rem; align-items:end;">
                                     <div>
                                         <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Search Student</label>
                                         <input type="text" name="search_student" class="selector-input" placeholder="Student name..." value="{{ request.GET.search_student }}">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Search Survey Title</label>
+                                        <input type="text" name="search_survey" class="selector-input" placeholder="Survey title..." value="{{ request.GET.search_survey }}">
                                     </div>
                                     <div>
                                         <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Section</label>
@@ -1147,7 +1151,7 @@
                                         <button type="submit" class="selector-button">Filter</button>
                                     </div>
                                 </div>
-                                {% if request.GET.search_student or request.GET.filter_section or request.GET.date_from or request.GET.date_to %}
+                                {% if request.GET.search_student or request.GET.search_survey or request.GET.filter_section or request.GET.date_from or request.GET.date_to %}
                                 <div style="margin-top:0.8rem;">
                                     <a href="{% url 'teacher_dashboard_page' 'history' %}" class="selector-button" style="display:inline-block; text-decoration:none;">Clear Filters</a>
                                 </div>
@@ -1201,21 +1205,21 @@
                         {% if responses.has_other_pages %}
                         <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:1.5rem; flex-wrap:wrap;">
                             {% if responses.has_previous %}
-                            <a href="?page=1{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">First</a>
-                            <a href="?page={{ responses.previous_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Previous</a>
+                            <a href="?page=1{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">First</a>
+                            <a href="?page={{ responses.previous_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Previous</a>
                             {% endif %}
 
                             {% for num in responses.paginator.page_range %}
                                 {% if responses.number == num %}
                                 <span class="selector-button" style="background:var(--accent); color:white;">{{ num }}</span>
                                 {% elif num > responses.number|add:'-3' and num < responses.number|add:'3' %}
-                                <a href="?page={{ num }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">{{ num }}</a>
+                                <a href="?page={{ num }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">{{ num }}</a>
                                 {% endif %}
                             {% endfor %}
 
                             {% if responses.has_next %}
-                            <a href="?page={{ responses.next_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Next</a>
-                            <a href="?page={{ responses.paginator.num_pages }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Last</a>
+                            <a href="?page={{ responses.next_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Next</a>
+                            <a href="?page={{ responses.paginator.num_pages }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Last</a>
                             {% endif %}
                         </div>
                         {% endif %}

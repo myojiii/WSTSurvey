@@ -643,6 +643,13 @@ def teacher_dashboard(request, page="new"):
                 Q(student__user__last_name__icontains=search_student)
             )
         
+        # Search by survey title
+        search_survey = request.GET.get('search_survey', '').strip()
+        if search_survey:
+            responses = responses.filter(
+                Q(survey__title__icontains=search_survey)
+            )
+        
         # Filter by section
         filter_section = request.GET.get('filter_section', '').strip()
         if filter_section:
