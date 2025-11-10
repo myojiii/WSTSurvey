@@ -15,6 +15,12 @@ from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from collections import Counter
 
+import re
+from collections import Counter
+from io import BytesIO
+from wordcloud import WordCloud, STOPWORDS
+import base64
+
 from .forms import StudentSigninForm, StudentSignupForm
 from .models import (
     Answer,
@@ -928,12 +934,46 @@ def teacher_analytics(request, survey_id):
 
 
             elif question.question_type == "SHORT":
-                short_texts = [a.text_response for a in question_answers if a.text_response]
-                summary_list.append({
+                # collect all text answers for this question
+                short_texts_orig = [a.text_response for a in question_answers if a.text_response]  # original
+                short_texts_clean = [a.text_response.strip().lower() for a in question_answers if
+                                     a.text_response]  # cleaned for wordcloud
+
+                summary_entry = {
                     "question": question,
                     "type": "SHORT",
-                    "short_answers": short_texts,
-                })
+                    "short_answers": short_texts_clean,  # for wordcloud
+                    "short_answers_orig": short_texts_orig,  # for textarea
+                }
+
+                # build a combined string or frequency dict
+                text_blob = " ".join(short_texts_clean)
+                words = re.findall(r"\b[^\d\W]\w+\b", text_blob)  # simple word extractor
+
+                # filter stopwords and very short words
+                stopwords = set(STOPWORDS)
+                filtered = [w for w in words if w not in stopwords and len(w) > 2]
+
+                # build frequencies
+                freqs = Counter(filtered) or {"(no responses)": 1}
+
+                # generate wordcloud
+                wc = WordCloud(
+                    width=800,
+                    height=400,
+                    background_color="white",
+                    collocations=False,
+                    max_words=200
+                ).generate_from_frequencies(freqs)
+
+                # convert to base64
+                buffer = BytesIO()
+                wc.to_image().save(buffer, format="PNG")
+                buffer.seek(0)
+                img_b64 = base64.b64encode(buffer.read()).decode("utf-8")
+                summary_entry["wordcloud_b64"] = img_b64
+
+                summary_list.append(summary_entry)
 
             print(f"Question {question.id}: {len(question_answers)} answers")
             # for a in question_answers:

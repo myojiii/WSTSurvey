@@ -144,6 +144,11 @@
             border: 1.4px dashed rgba(27, 154, 127, 0.3);
             color: rgba(28, 60, 51, 0.9);
             white-space: pre-wrap;
+            width: 100%;
+            height: 200px;
+            resize: none;
+            font-family: 'Poppins', sans-serif;
+            line-height: 2.5;
         }
 
         .back-link {
@@ -198,17 +203,21 @@
                 <div style="width: 100%; max-width: 550px; margin: 0 auto; text-align: center; height: 300px;">
                     <canvas id="chart{{ forloop.counter }}"></canvas>
                 </div>
-
-
             {% elif summary.type == "SHORT" %}
+                {% if summary.wordcloud_b64 %}
+                    <div style="text-align:center; margin-top:10px;">
+                        <img src="data:image/png;base64,{{ summary.wordcloud_b64 }}" alt="Word Cloud" style="max-width:100%; height:auto;">
+                    </div>
+                {% endif %}
                 <div class="short-answers">
-                    {% for text in summary.short_answers %}
-                        <p>{{ text }}</p>
-                    {% empty %}
-                        <p>(No responses yet)</p>
-                    {% endfor %}
+                <small>Responses: </small> <br>
+<textarea readonly class="answer-text">
+{% for text in summary.short_answers_orig %}{{ text }}
+{% endfor %}
+</textarea>
                 </div>
             {% endif %}
+
 
         </article>
     {% endfor %}
