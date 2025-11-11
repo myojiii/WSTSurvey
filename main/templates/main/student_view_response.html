@@ -203,7 +203,21 @@
             </article>
         {% endfor %}
 
-        <a href="{% url 'student_dashboard_page' 'responses' %}" class="back-link">← Back to Response History</a>
+        <header class="response-header">
+            <div class="response-header-actions">
+                {% if is_teacher_viewing %}
+                    <a href="{% url 'teacher_dashboard_page' 'history' %}" class="back-link">
+                        <span class="back-icon">←</span>
+                        <span>Back to Responses History</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'student_dashboard_page' 'responses' %}" class="back-link">
+                        <span class="back-icon">←</span>
+                        <span>Back to Response History</span>
+                    </a>
+                {% endif %}
+            </div>
+        </header>
     </div>
 </body>
 </html>

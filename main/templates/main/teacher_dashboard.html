@@ -1,4 +1,5 @@
 {% load static %}
+{% load tz %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -918,8 +919,8 @@
                 <h1>
                     {% if active_page == 'collection' %}
                         Survey Collection
-                    {% elif active_page == 'assigned' %}
-                        Assigned Surveys
+                    {% elif active_page == 'dashboard' %}
+                        Dashboard
                     {% elif active_page == 'history' %}
                         Responses History
                     {% else %}
@@ -937,6 +938,7 @@
                         {% endif %}
                         <button class="secondary-action" type="button" id="preview-btn">Preview</button>
                         <button class="secondary-action" type="button" id="save-draft-btn">Save to Draft</button>
+                        <button class="secondary-action" type="button" id="view-responses-btn" >View Responses</button>
                         <button class="primary-action" type="button" id="publish-btn">Publish</button>
                     </div>
                 {% else %}
@@ -1125,6 +1127,115 @@
                         {% endif %}
                     </div>
                 </section>
+            {% elif active_page == 'history' %}
+                <section class="survey-builder">
+                    <div class="survey-panel" data-panel="history">
+                        <div class="module-block" style="margin-bottom:0rem;">
+                            <form method="GET" action="{% url 'teacher_dashboard_page' 'history' %}">
+                                <div style="display:grid; grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr auto; gap:1rem; align-items:end;">
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Search Student</label>
+                                        <input type="text" name="search_student" class="selector-input" placeholder="Student name..." value="{{ request.GET.search_student }}">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Search Survey Title</label>
+                                        <input type="text" name="search_survey" class="selector-input" placeholder="Survey title..." value="{{ request.GET.search_survey }}">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">Section</label>
+                                        <select name="filter_section" class="question-type-select" style="width:100%;">
+                                            <option value="">All Sections</option>
+                                            {% for sec in all_sections %}
+                                                <option value="{{ sec.section_id }}" {% if request.GET.filter_section == sec.section_id %}selected{% endif %}>{{ sec.section_id }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">From Date</label>
+                                        <input type="date" name="date_from" class="selector-input" value="{{ request.GET.date_from }}">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; margin-bottom:0.4rem; font-weight:600; font-size:0.9rem;">To Date</label>
+                                        <input type="date" name="date_to" class="selector-input" value="{{ request.GET.date_to }}">
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="selector-button">Filter</button>
+                                    </div>
+                                </div>
+                                {% if request.GET.search_student or request.GET.search_survey or request.GET.filter_section or request.GET.date_from or request.GET.date_to %}
+                                <div style="margin-top:0.8rem;">
+                                    <a href="{% url 'teacher_dashboard_page' 'history' %}" class="selector-button" style="display:inline-block; text-decoration:none;">Clear Filters</a>
+                                </div>
+                                {% endif %}
+                            </form>
+                        </div>
+
+                        {% if responses %}
+                        <p style="margin:0 0 0rem; color:rgba(36, 70, 61, 0.7); font-size:0.9rem;">
+                            Showing {{ responses.start_index }} - {{ responses.end_index }} of {{ paginator.count }} response(s)
+                        </p>
+                        {% endif %}
+
+                        <table class="collection-table">
+                            <thead>
+                                <tr style="text-align:left;">
+                                    <th>Student Name</th>
+                                    <th>Section</th>
+                                    <th>Survey Title</th>
+                                    <th>Submitted Date</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in responses %}
+                                <tr>
+                                    <td style="font-weight:600;">{{ submission.student.user.get_full_name }}</td>
+                                    <td>
+                                        {% if submission.student.section %}
+                                            <span style="display:inline-block; padding:0.25rem 0.6rem; border-radius:999px; background:rgba(32, 147, 119, 0.12); color:var(--accent); font-size:0.82rem;">{{ submission.student.section.section_id }}</span>
+                                        {% else %}
+                                            <span style="color:rgba(36, 70, 61, 0.6);">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ submission.survey.title }}</td>
+                                    <td>{{ submission.submitted_at|timezone:"Asia/Manila"|date:"M d, Y g:i A" }}</td>
+                                    <td style="text-align:right;">
+                                        <a href="{% url 'student_view_response' submission.id %}" class="action-link">View Response</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding:2rem; color:rgba(36, 70, 61, 0.6);">
+                                        No responses found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        {% if responses.has_other_pages %}
+                        <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:1.5rem; flex-wrap:wrap;">
+                            {% if responses.has_previous %}
+                            <a href="?page=1{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">First</a>
+                            <a href="?page={{ responses.previous_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Previous</a>
+                            {% endif %}
+
+                            {% for num in responses.paginator.page_range %}
+                                {% if responses.number == num %}
+                                <span class="selector-button" style="background:var(--accent); color:white;">{{ num }}</span>
+                                {% elif num > responses.number|add:'-3' and num < responses.number|add:'3' %}
+                                <a href="?page={{ num }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if responses.has_next %}
+                            <a href="?page={{ responses.next_page_number }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Next</a>
+                            <a href="?page={{ responses.paginator.num_pages }}{% if request.GET.search_student %}&search_student={{ request.GET.search_student }}{% endif %}{% if request.GET.search_survey %}&search_survey={{ request.GET.search_survey }}{% endif %}{% if request.GET.filter_section %}&filter_section={{ request.GET.filter_section }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="selector-button" style="text-decoration:none;">Last</a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
             {% else %}
                 <section class="module-card" style="display:flex; align-items:center; justify-content:center; text-align:center; min-height:240px;">
                     <div>
@@ -1168,6 +1279,7 @@
             const saveDraftBtn = document.getElementById('save-draft-btn');
             const publishBtn = document.getElementById('publish-btn');
             const previewBtn = document.getElementById('preview-btn');
+            const responsesBtn = document.getElementById('view-responses-btn');
             const sectionInputs = builder.querySelectorAll('input[name="assigned_sections"]');
             if (!stack || !dropMarker) {
                 return;
@@ -1849,6 +1961,7 @@
                     throw new Error('Add at least one question before saving.');
                 }
                 if (status === 'published' && payload.sections.length === 0) {
+                   
                     throw new Error('Select at least one section before publishing.');
                 }
                 if (status === 'published') {
@@ -1882,6 +1995,7 @@
                     payload.survey_id = currentSurveyId;
                 }
 
+               
                 try {
                     validateSurveyData(payload, status);
                 } catch (validationError) {
@@ -1922,6 +2036,7 @@
                         } else {
                             window.open(previewUrl, '_blank');
                         }
+
                         showMessage('Latest changes saved. Opening preview.');
                         return;
                     }
@@ -1959,6 +2074,13 @@
                     submitSurvey('draft', { preview: true });
                 });
             }
+
+            if (responsesBtn) {
+                responsesBtn.onclick = function() {
+                    window.location.href = `/teacher/surveys/${currentSurveyId}/responses`;
+                }
+            }
+
         }());
     </script>
 </body>

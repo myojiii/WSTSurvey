@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -7,12 +7,21 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
+from collections import Counter
+
+import re
+from collections import Counter
+from io import BytesIO
+from wordcloud import WordCloud, STOPWORDS
+import base64
 
 from .forms import StudentSigninForm, StudentSignupForm
 from .models import (
@@ -494,18 +503,33 @@ def student_take_survey(request, assignment_id):
 
 @login_required(login_url="student_signin")
 def student_view_response(request, submission_id):
-    if not hasattr(request.user, "student_profile"):
-        if request.user.username == _teacher_username():
-            return redirect("teacher_dashboard")
+    # Allow both students and teachers to view responses
+    is_teacher = request.user.username == _teacher_username()
+
+    if not is_teacher and not hasattr(request.user, "student_profile"):
         return redirect("student_signin")
 
-    profile = request.user.student_profile
-    submission = get_object_or_404(
-        SurveySubmission.objects.select_related("survey", "survey__teacher", "student"),
-        id=submission_id,
-        student=profile,
-        is_submitted=True,
+    # Get the submission
+    submission_query = SurveySubmission.objects.select_related(
+        "survey", "survey__teacher", "student", "student__user", "student__section"
     )
+
+    if is_teacher:
+        # Teacher can view any submission
+        submission = get_object_or_404(
+            submission_query,
+            id=submission_id,
+            is_submitted=True,
+        )
+    else:
+        # Student can only view their own submission
+        profile = request.user.student_profile
+        submission = get_object_or_404(
+            submission_query,
+            id=submission_id,
+            student=profile,
+            is_submitted=True,
+        )
 
     survey = submission.survey
     question_qs = (
@@ -538,7 +562,9 @@ def student_view_response(request, submission_id):
     else:
         teacher_name = "Administrator"
 
-    assignment = SurveyAssignment.objects.filter(section=profile.section, survey=survey).select_related("section").first()
+    assignment = SurveyAssignment.objects.filter(
+        section=submission.student.section, survey=survey
+    ).select_related("section").first()
 
     return render(
         request,
@@ -549,6 +575,7 @@ def student_view_response(request, submission_id):
             "teacher_name": teacher_name,
             "assignment": assignment,
             "submission": submission,
+            "is_teacher_viewing": is_teacher,
         },
     )
 
@@ -570,13 +597,13 @@ def teacher_dashboard(request, page="new"):
         return redirect("student_signin")
 
     page = page.lower()
-    allowed_pages = {"collection", "assigned", "history", "new"}
+    allowed_pages = {"dashboard", "collection", "history", "new"}
     if page not in allowed_pages:
         page = "new"
 
     teacher_nav = [
+        {"slug": "dashboard", "label": "Dashboard", "icon": "📊"},
         {"slug": "collection", "label": "Survey Collection", "icon": "📚"},
-        {"slug": "assigned", "label": "Assigned Surveys", "icon": "📊"},
         {"slug": "history", "label": "Responses History", "icon": "📁"},
         {"slug": "new", "label": "New Survey", "icon": "➕"},
     ]
@@ -599,6 +626,62 @@ def teacher_dashboard(request, page="new"):
             .prefetch_related("assignments__section")
             .order_by("-updated_at")
         )
+
+    # Handle Responses History page
+    responses_data = None
+    paginator = None
+    all_sections = []
+    if page == "history":
+        responses = SurveySubmission.objects.filter(
+            is_submitted=True
+        ).select_related(
+            'student__user', 'student__section', 'survey'
+        ).order_by('-submitted_at')
+
+        # Get all unique sections for the filter dropdown
+        all_sections = ClassSection.objects.order_by("section_id")
+
+        # Search by student name only (first name or last name)
+        search_student = request.GET.get('search_student', '').strip()
+        if search_student:
+            responses = responses.filter(
+                Q(student__user__first_name__icontains=search_student) |
+                Q(student__user__last_name__icontains=search_student)
+            )
+
+        # Search by survey title
+        search_survey = request.GET.get('search_survey', '').strip()
+        if search_survey:
+            responses = responses.filter(
+                Q(survey__title__icontains=search_survey)
+            )
+
+        # Filter by section
+        filter_section = request.GET.get('filter_section', '').strip()
+        if filter_section:
+            responses = responses.filter(student__section__section_id=filter_section)
+
+        # Filter by date range
+        date_from = request.GET.get('date_from', '').strip()
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                responses = responses.filter(submitted_at__date__gte=date_from_obj.date())
+            except ValueError:
+                pass
+
+        date_to = request.GET.get('date_to', '').strip()
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                responses = responses.filter(submitted_at__date__lte=date_to_obj.date())
+            except ValueError:
+                pass
+
+        # Pagination
+        paginator = Paginator(responses, 10)
+        page_number = request.GET.get('page', 1)
+        responses_data = paginator.get_page(page_number)
 
     editing_payload = None
     if page == "new":
@@ -685,6 +768,9 @@ def teacher_dashboard(request, page="new"):
             "sections": sections,
             "collection_surveys": collection_surveys,
             "editing_payload": editing_payload,
+            "responses": responses_data,
+            "paginator": paginator,
+            "all_sections": all_sections,
         },
     )
 
@@ -845,8 +931,173 @@ def teacher_preview_survey(request, survey_id):
     )
 
 
+@login_required(login_url="student_signin")
+def teacher_analytics(request, survey_id):
+    template = "main/teacher_analytics.html"
+    survey = (
+        Survey.objects
+        .filter(teacher=request.user, id=survey_id)
+        .prefetch_related("questions__choices")
+        .first()
+    )
+
+    submissions = []
+    answers = []
+    summary_list = []
+
+    if survey:
+        submissions = (
+            SurveySubmission.objects
+            .filter(survey=survey)
+            .select_related("student__user")
+            .prefetch_related("answers__question", "answers__selected_choice")
+        )
+
+        for submission in submissions:
+            for answer in submission.answers.all():
+                answers.append(answer)
+
+        print(len(submissions))
+        print(len(answers))
+
+        # make summary grouped by question type
+        for question in survey.questions.all():
+            question_answers = [a for a in answers if a.question_id == question.id]
+
+            if question.question_type in ["MCQ", "LIKERT"]:
+                # Start with all choices set to 0
+                choice_counts = {c.text: 0 for c in question.choices.all()}
+
+                # Count actual responses
+                for a in question_answers:
+                    if a.selected_choice:
+                        choice_counts[a.selected_choice.text] += 1
+
+                # Convert dict to lists for chart display
+                choice_labels = list(choice_counts.keys())
+                choice_values = list(choice_counts.values())
+
+                summary_list.append({
+                    "question": question,
+                    "type": question.question_type,
+                    "choices": list(choice_counts.items()),
+                    "choice_labels": choice_labels,
+                    "choice_values": choice_values,
+                })
+
+
+
+            elif question.question_type == "SHORT":
+                # collect all text answers for this question
+                short_texts_orig = [a.text_response for a in question_answers if a.text_response]  # original
+                short_texts_clean = [a.text_response.strip().lower() for a in question_answers if
+                                     a.text_response]  # cleaned for wordcloud
+
+                summary_entry = {
+                    "question": question,
+                    "type": "SHORT",
+                    "short_answers": short_texts_clean,  # for wordcloud
+                    "short_answers_orig": short_texts_orig,  # for textarea
+                }
+
+                # build a combined string or frequency dict
+                text_blob = " ".join(short_texts_clean)
+                words = re.findall(r"\b[^\d\W]\w+\b", text_blob)  # simple word extractor
+
+                # filter stopwords and very short words
+                stopwords = set(STOPWORDS)
+                filtered = [w for w in words if w not in stopwords and len(w) > 2]
+
+                # build frequencies
+                freqs = Counter(filtered) or {"(no responses)": 1}
+
+                # generate wordcloud
+                wc = WordCloud(
+                    width=800,
+                    height=400,
+                    background_color="white",
+                    collocations=False,
+                    max_words=200
+                ).generate_from_frequencies(freqs)
+
+                # convert to base64
+                buffer = BytesIO()
+                wc.to_image().save(buffer, format="PNG")
+                buffer.seek(0)
+                img_b64 = base64.b64encode(buffer.read()).decode("utf-8")
+                summary_entry["wordcloud_b64"] = img_b64
+
+                summary_list.append(summary_entry)
+
+            print(f"Question {question.id}: {len(question_answers)} answers")
+            # for a in question_answers:
+            #     print(f"- selected_choice: {a.selected_choice}, text_response: {a.text_response}")
+
+
+    context = {
+        "survey": survey,
+        "submissions": submissions,
+        "summary_list": summary_list,
+    }
+
+    return render(request, template, context)
+
+
 def logout_view(request):
     """Log out any authenticated user and return to the sign-in screen."""
     if request.user.is_authenticated:
         auth_logout(request)
     return redirect("student_signin")
+
+
+@login_required(login_url="student_signin")
+def teacher_responses_history(request):
+    """View all student responses with search and filter capabilities"""
+    if request.user.username != _teacher_username():
+        if hasattr(request.user, "student_profile"):
+            return redirect("student_dashboard")
+        return redirect("student_signin")
+
+    # Get all submitted responses using SurveySubmission
+    responses = SurveySubmission.objects.filter(
+        is_submitted=True
+    ).select_related(
+        'student__user', 'survey'
+    ).order_by('-submitted_at')
+
+    # Search by student name
+    search_student = request.GET.get('search_student', '').strip()
+    if search_student:
+        responses = responses.filter(
+            Q(student__user__first_name__icontains=search_student) |
+            Q(student__user__last_name__icontains=search_student)
+        )
+
+    # Filter by date range
+    date_from = request.GET.get('date_from', '').strip()
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            responses = responses.filter(submitted_at__date__gte=date_from_obj.date())
+        except ValueError:
+            pass
+
+    date_to = request.GET.get('date_to', '').strip()
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            responses = responses.filter(submitted_at__date__lte=date_to_obj.date())
+        except ValueError:
+            pass
+
+    # Pagination
+    paginator = Paginator(responses, 10)  # 10 responses per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'responses': page_obj,
+        'paginator': paginator,
+    }
+
+    return render(request, 'main/teacher_responses_history.html', context)
