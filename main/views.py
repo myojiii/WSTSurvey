@@ -605,7 +605,7 @@ def teacher_dashboard(request, page="new"):
         {"slug": "dashboard", "label": "Dashboard", "icon": "📊"},
         {"slug": "collection", "label": "Survey Collection", "icon": "📚"},
         {"slug": "history", "label": "Responses History", "icon": "📁"},
-        {"slug": "new", "label": "New Survey", "icon": "➕"},
+        {"slug": "new", "label": "Survey Builder", "icon": "➕"},
     ]
 
     try:
