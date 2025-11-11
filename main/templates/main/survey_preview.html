@@ -1,4 +1,5 @@
 {% load static %}
+{% load status_labels %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,7 +140,7 @@
 <body>
     <div class="preview-shell">
         <div class="survey-header">
-            <span class="badge">{% if survey.status %}{{ survey.status|title }}{% else %}Draft{% endif %}</span>
+            <span class="badge">{% if survey.status %}{{ survey.display_status|status_label }}{% else %}Draft{% endif %}</span>
             <h1>{{ survey.title }}</h1>
             {% if survey.description %}
                 <p>{{ survey.description }}</p>

@@ -132,6 +132,10 @@ def _serialize_questions(question_qs):
     return items
 
 
+def _is_ajax(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+
 def student_signin(request):
     """Display and process the student sign-in form."""
     teacher_user = _ensure_teacher_account()
@@ -255,7 +259,13 @@ def student_dashboard(request, page="assigned"):
             submission = submission_map.get(survey.id)
             if submission and submission.is_submitted:
                 continue
-            status_label = "In Progress" if submission else "Pending"
+            due_date = assignment.due_date or survey.due_date
+            if due_date and timezone.is_naive(due_date):
+                due_date = timezone.make_aware(due_date, timezone.get_default_timezone())
+            effective_status = getattr(survey, "display_status", survey.status)
+            is_closed = effective_status == "closed" or effective_status == "archived"
+            status_label = "Closed" if is_closed else "Open"
+            action_label = "Closed" if is_closed else ("Continue" if submission else "Take Survey")
             assigned_surveys.append(
                 {
                     "assignment_id": assignment.id,
@@ -263,9 +273,11 @@ def student_dashboard(request, page="assigned"):
                     "title": survey.title,
                     "assigned_by": teacher_name,
                     "assigned_date": assignment.assigned_date or survey.created_at,
-                    "due_date": assignment.due_date or survey.due_date,
+                    "due_date": due_date,
                     "status": status_label,
                     "has_submission": bool(submission),
+                    "action_label": action_label,
+                    "is_closed": is_closed,
                 }
             )
 
@@ -453,6 +465,8 @@ def student_take_survey(request, assignment_id):
                     Answer.objects.bulk_create(answer_objects)
 
                 if action == "save":
+                    if _is_ajax(request):
+                        return JsonResponse({"status": "saved"})
                     return redirect("student_dashboard")
 
             messages.success(request, "Your responses have been submitted.")
@@ -749,14 +763,22 @@ def teacher_dashboard(request, page="new"):
                 if assignment.section
             ]
 
+            due_date_value = ""
+            if survey_to_edit.due_date:
+                due_reference = survey_to_edit.due_date
+                if timezone.is_naive(due_reference):
+                    due_reference = timezone.make_aware(due_reference, timezone.get_default_timezone())
+                due_local = timezone.localtime(due_reference)
+                due_date_value = due_local.strftime("%Y-%m-%dT%H:%M")
+
             editing_payload = {
                 "id": survey_to_edit.id,
                 "title": survey_to_edit.title,
                 "description": survey_to_edit.description or "",
-                "due_date": survey_to_edit.due_date.isoformat() if survey_to_edit.due_date else "",
+                "due_date": due_date_value,
                 "sections": section_ids,
                 "questions": questions_data,
-                "status": survey_to_edit.status,
+                "status": survey_to_edit.display_status,
             }
     return render(
         request,
@@ -790,6 +812,14 @@ def teacher_save_survey(request):
     if status not in {"draft", "published"}:
         return JsonResponse({"error": "Invalid survey status."}, status=400)
 
+    availability = (payload.get("availability") or "open").lower()
+    if availability not in {"open", "closed"}:
+        return JsonResponse({"error": "Invalid availability option."}, status=400)
+
+    final_status = status
+    if status == "published" and availability == "closed":
+        final_status = "closed"
+
     title = (payload.get("title") or "").strip()
     if not title:
         return JsonResponse({"error": "Please provide a survey title."}, status=400)
@@ -799,6 +829,8 @@ def teacher_save_survey(request):
     due_date = parse_datetime(due_date_str) if due_date_str else None
     if due_date_str and due_date is None:
         return JsonResponse({"error": "Invalid due date format."}, status=400)
+    if due_date and timezone.is_naive(due_date):
+        due_date = timezone.make_aware(due_date, timezone.get_default_timezone())
 
     section_ids = payload.get("sections") or []
     ClassSection.ensure_seeded()
@@ -825,7 +857,7 @@ def teacher_save_survey(request):
         survey.title = title
         survey.description = description
         survey.due_date = due_date
-        survey.status = status
+        survey.status = final_status
         if status == "published":
             survey.published_at = timezone.now()
         else:
@@ -844,7 +876,7 @@ def teacher_save_survey(request):
             if not assignment:
                 assignment = SurveyAssignment(survey=survey, section=section)
             assignment.section = section
-            assignment.status = status
+            assignment.status = "published" if status == "published" else "draft"
             assignment.due_date = due_date
             assignment.assigned_date = timezone.now() if status == "published" else None
             assignment.save()
@@ -898,7 +930,7 @@ def teacher_save_survey(request):
                 max_length = question_data.get("max_length") or 500
                 ShortAnswerQuestion.objects.create(question=question, max_length=max_length)
 
-    return JsonResponse({"id": survey.id, "status": survey.status})
+    return JsonResponse({"id": survey.id, "status": survey.display_status})
 
 
 @login_required(login_url="student_signin")

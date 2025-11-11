@@ -410,6 +410,11 @@
             text-decoration: underline;
         }
 
+        .action-label {
+            font-weight: 600;
+            color: rgba(32, 71, 60, 0.45);
+        }
+
         @media (max-width: 1080px) {
             .layout {
                 grid-template-columns: 240px 1fr;
@@ -546,8 +551,12 @@
                                         <td>{% if survey.due_date %} {{ survey.due_date|date:"M d, Y · h:i A" }} {% else %} — {% endif %}</td>
                                         <td>{{ survey.status }}</td>
                                         <td>
-                                            <a href="{% url 'student_take_survey' survey.assignment_id %}"
-                                               class="action-link">Take Survey</a>
+                                            {% if survey.is_closed %}
+                                                <span class="action-label">Closed</span>
+                                            {% else %}
+                                                <a href="{% url 'student_take_survey' survey.assignment_id %}"
+                                                   class="action-link">{{ survey.action_label }}</a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}

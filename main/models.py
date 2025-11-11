@@ -64,6 +64,7 @@ class Survey(models.Model):
         ("draft", "Draft"),
         ("published", "Published"),
         ("closed", "Closed"),
+        ("archived", "Archived"),
     ]
 
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name="teacher_surveys", null=True, blank=True)
@@ -80,6 +81,20 @@ class Survey(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def display_status(self):
+        status = self.status or "draft"
+        if status in {"draft", "closed", "archived"}:
+            return status
+        due_date = self.due_date
+        if due_date:
+            target = due_date
+            if timezone.is_naive(target):
+                target = timezone.make_aware(target, timezone.get_default_timezone())
+            if target < timezone.now():
+                return "closed"
+        return status
 
 
 class SurveyAssignment(models.Model):

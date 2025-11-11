@@ -36,6 +36,35 @@
             padding: 2.8rem 1.8rem 4rem;
         }
 
+        .survey-header__top {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.6rem;
+        }
+
+        .back-button {
+            border: 1.2px solid rgba(27, 154, 127, 0.35);
+            background: rgba(27, 154, 127, 0.08);
+            color: var(--accent-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-button:hover {
+            background: rgba(27, 154, 127, 0.16);
+            transform: translateX(-1px);
+        }
+
         .survey-header h1 {
             margin: 0 0 0.6rem;
             font-size: clamp(1.9rem, 4vw, 2.4rem);
@@ -299,6 +328,10 @@
             text-decoration: none;
             color: var(--accent-dark);
             font-weight: 600;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0.4rem 0.6rem;
         }
 
         @media (max-width: 640px) {
@@ -318,7 +351,12 @@
 <body>
     <div class="take-shell">
         <div class="survey-header">
-            <span class="badge">Assigned Survey</span>
+            <div class="survey-header__top">
+                <button type="button" class="back-button back-to-dashboard" aria-label="Back to assigned surveys">
+                    <span aria-hidden="true">←</span>
+                </button>
+                <span class="badge">Assigned Survey</span>
+            </div>
             <h1>{{ survey.title }}</h1>
             <p>Prepared by {{ teacher_name }}</p>
             <div class="meta-line">
@@ -343,6 +381,7 @@
 
         <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="action" value="submit" id="form-action-field">
             {% if form_errors %}
                 <div class="form-errors">{{ form_errors }}</div>
             {% endif %}
@@ -399,11 +438,9 @@
             {% endfor %}
 
             <div class="form-actions">
-                <a href="{% url 'student_dashboard' %}" class="secondary-link">Cancel</a>
-                {% if has_saved_progress %}
-                    <button type="submit" name="action" value="save" class="secondary-button">Save Progress</button>
-                {% endif %}
-                <button type="submit" name="action" value="submit" class="primary-button">Submit Responses</button>
+                <button type="button" class="secondary-link back-to-dashboard">Back to Dashboard</button>
+                <button type="submit" name="action" value="save" class="secondary-button" data-form-action="save">Save Progress</button>
+                <button type="submit" name="action" value="submit" class="primary-button" data-form-action="submit">Submit Responses</button>
             </div>
         </form>
     </div>
@@ -470,6 +507,132 @@
                 if (event.target.matches('input[type="radio"], textarea, input[type="text"]')) {
                     updateProgress();
                 }
+            });
+        }());
+
+        (function() {
+            const form = document.querySelector('form');
+            if (!form) {
+                return;
+            }
+
+            const questionCards = document.querySelectorAll('.question-card');
+            const backButtons = document.querySelectorAll('.back-to-dashboard');
+            const actionButtons = form.querySelectorAll('[data-form-action]');
+            const actionField = document.getElementById('form-action-field');
+            const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
+            const dashboardUrl = "{% url 'student_dashboard' %}";
+            let manualSubmit = false;
+            let dirtySinceSave = false;
+
+            function cardAnswered(card) {
+                const type = (card.dataset.questionType || '').toUpperCase();
+                if (type === 'MCQ' || type === 'LIKERT') {
+                    return !!card.querySelector('input[type="radio"]:checked');
+                }
+                const input = card.querySelector('textarea, input[type="text"]');
+                return input && input.value.trim().length > 0;
+            }
+
+            function hasAnyResponse() {
+                return Array.from(questionCards).some(cardAnswered);
+            }
+
+            function markDirty(event) {
+                if (event.target.matches('input[type="radio"], textarea, input[type="text"]')) {
+                    dirtySinceSave = true;
+                }
+            }
+
+            form.addEventListener('input', markDirty);
+            form.addEventListener('change', markDirty);
+
+            actionButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const pending = button.dataset.formAction || 'submit';
+                    form.dataset.pendingAction = pending;
+                    if (actionField) {
+                        actionField.value = pending;
+                    }
+                });
+            });
+
+            form.addEventListener('submit', function() {
+                manualSubmit = true;
+                if (actionField && form.dataset.pendingAction) {
+                    actionField.value = form.dataset.pendingAction;
+                }
+            });
+
+            function saveDraftViaAjax() {
+                if (!hasAnyResponse()) {
+                    return Promise.resolve();
+                }
+                const formData = new FormData(form);
+                formData.set('action', 'save');
+                return fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                }).then(function() {
+                    dirtySinceSave = false;
+                }).catch(function() {
+                    // ignore network errors for background saves
+                });
+            }
+
+            backButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    if (!hasAnyResponse()) {
+                        window.location.href = dashboardUrl;
+                        return;
+                    }
+                    button.disabled = true;
+                    const navigateHome = function() {
+                        window.location.href = dashboardUrl;
+                    };
+                    saveDraftViaAjax().then(navigateHome).catch(navigateHome);
+                });
+            });
+
+            function beaconSaveDraft() {
+                if (!dirtySinceSave || !hasAnyResponse()) {
+                    return;
+                }
+                const formData = new FormData(form);
+                formData.set('action', 'save');
+                if (navigator.sendBeacon) {
+                    const params = new URLSearchParams();
+                    formData.forEach(function(value, key) {
+                        params.append(key, value);
+                    });
+                    navigator.sendBeacon(window.location.href, params);
+                    dirtySinceSave = false;
+                    return;
+                }
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    keepalive: true,
+                    credentials: 'same-origin',
+                });
+                dirtySinceSave = false;
+            }
+
+            window.addEventListener('beforeunload', function() {
+                if (manualSubmit) {
+                    return;
+                }
+                beaconSaveDraft();
             });
         }());
     </script>
