@@ -11,7 +11,7 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.utils.dateparse import parse_date
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .forms import StudentSigninForm, StudentSignupForm
@@ -444,7 +444,7 @@ def student_take_survey(request, assignment_id):
                     Answer.objects.bulk_create(answer_objects)
 
                 if action == "save":
-                    return redirect("student_take_survey", assignment_id=assignment.id)
+                    return redirect("student_dashboard")
 
             messages.success(request, "Your responses have been submitted.")
             return redirect("student_dashboard_page", page="responses")
@@ -710,7 +710,7 @@ def teacher_save_survey(request):
 
     description = (payload.get("description") or "").strip()
     due_date_str = payload.get("due_date")
-    due_date = parse_date(due_date_str) if due_date_str else None
+    due_date = parse_datetime(due_date_str) if due_date_str else None
     if due_date_str and due_date is None:
         return JsonResponse({"error": "Invalid due date format."}, status=400)
 

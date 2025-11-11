@@ -169,7 +169,7 @@
                 <span>Prepared by {{ teacher_name }}</span>
             </div>
         </div>
-
+            <a href="{% url 'student_dashboard_page' 'responses' %}" class="back-link">← Back to Response History</a>
         {% for question in questions %}
             <article class="question-card">
                 <h2>{{ forloop.counter }}. {{ question.title }}</h2>

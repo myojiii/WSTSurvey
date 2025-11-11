@@ -94,15 +94,18 @@
         }
 
         .sidebar {
-            background: var(--sidebar-bg);
-            padding: 2rem 1.75rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            box-shadow: 12px 0 35px rgba(22, 72, 64, 0.08);
-            transition: transform 0.25s ease, opacity 0.25s ease;
-            position: relative;
-            min-height: calc(100vh - 70px);
+           position: sticky;
+           top: 78px;
+           align-self: start;
+           height: calc(100vh - 78px);
+           overflow-y: auto;
+           background: var(--sidebar-bg);
+           padding: 2rem 1.8rem;
+           display: flex;
+           flex-direction: column;
+           justify-content: flex-start;
+           box-shadow: 12px 0 35px rgba(22, 72, 64, 0.1);
+           transition: transform 0.25s ease, opacity 0.25s ease;
         }
 
         .layout.is-collapsed .sidebar {
@@ -481,6 +484,7 @@
                     {% endif %}
                 </h1>
                 {% if active_page == 'assigned' %}
+
                     <div class="header-meta">
                         <form method="get" class="filter-form">
                             <input type="hidden" name="page" value="assigned">
@@ -493,6 +497,7 @@
                                     <option value="month" {% if assigned_filters.range == 'month' %}selected{% endif %}>This Month</option>
                                 </select>
                             </label>
+                            <!--
                             <label class="filter-select">
                                 <span>Due</span>
                                 <select name="due">
@@ -500,11 +505,12 @@
                                     <option value="today" {% if assigned_filters.due == 'today' %}selected{% endif %}>Today</option>
                                     <option value="week" {% if assigned_filters.due == 'week' %}selected{% endif %}>This Week</option>
                                     <option value="month" {% if assigned_filters.due == 'month' %}selected{% endif %}>This Month</option>
-                                </select>
+                                </select> -->
                             </label>
                             <button type="submit" class="filter-apply">Apply</button>
                         </form>
                     </div>
+
                 {% endif %}
             </div>
             {% if messages %}
@@ -524,7 +530,7 @@
                                     <th>Survey Title</th>
                                     <th>Assigned By</th>
                                     <th>Assigned On</th>
-                                    <th>Due Date</th>
+                                    <th>Due Date & Time</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -537,7 +543,7 @@
                                         <td>{{ survey.title }}</td>
                                         <td>{{ survey.assigned_by }}</td>
                                         <td>{% if survey.assigned_date %}{{ survey.assigned_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
-                                        <td>{% if survey.due_date %}{{ survey.due_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                        <td>{% if survey.due_date %} {{ survey.due_date|date:"M d, Y · h:i A" }} {% else %} — {% endif %}</td>
                                         <td>{{ survey.status }}</td>
                                         <td>
                                             <a href="{% url 'student_take_survey' survey.assignment_id %}"
@@ -564,7 +570,7 @@
                                     <th>Survey Title</th>
                                     <th>Assigned By</th>
                                     <th>Assigned On</th>
-                                    <th>Due Date</th>
+                                    <th>Due Date & Time</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -577,7 +583,7 @@
                                             <td>{{ survey.title }}</td>
                                             <td>{{ survey.assigned_by }}</td>
                                             <td>{% if survey.assigned_date %}{{ survey.assigned_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
-                                            <td>{% if survey.due_date %}{{ survey.due_date|date:"M d, Y" }}{% else %}—{% endif %}</td>
+                                            <td>{% if survey.due_date %}{{ survey.due_date|date:"M d, Y · h:i A" }}{% else %}—{% endif %}</td>
                                             <td>{{ survey.status }}</td>
                                             <td>
                                                 <a href="{% url 'student_view_response' survey.submission_id %}" class="action-link">View Response</a>

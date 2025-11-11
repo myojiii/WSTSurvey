@@ -106,12 +106,15 @@
         }
 
         .progress-shell {
-            margin: 1.6rem 0 1rem;
-            padding: 1.2rem 1.4rem;
-            border-radius: 18px;
-            background: rgba(27, 154, 127, 0.12);
-            box-shadow: inset 0 0 0 1px rgba(27, 154, 127, 0.08);
-            text-align: center;
+           margin: 1.6rem 0 1rem;
+           padding: 1.2rem 1.4rem;
+           border-radius: 18px;
+           background: rgba(27, 154, 127, 0.12);
+           box-shadow: inset 0 0 0 1px rgba(27, 154, 127, 0.08);
+           text-align: center;
+           top: 30px;
+           position: sticky;
+           z-index: 50;
         }
 
         .progress-label {
@@ -398,9 +401,8 @@
             <div class="form-actions">
                 <a href="{% url 'student_dashboard' %}" class="secondary-link">Cancel</a>
                 {% if has_saved_progress %}
-                    <a href="{% url 'student_dashboard' %}" class="secondary-button">Back to Assigned Surveys</a>
+                    <button type="submit" name="action" value="save" class="secondary-button">Save Progress</button>
                 {% endif %}
-                <button type="submit" name="action" value="save" class="secondary-button" formnovalidate>Save Progress</button>
                 <button type="submit" name="action" value="submit" class="primary-button">Submit Responses</button>
             </div>
         </form>
