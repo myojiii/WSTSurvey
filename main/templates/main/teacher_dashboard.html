@@ -553,14 +553,122 @@
 
         .question-board {
             display: grid;
-            grid-template-rows: 1fr auto;
-            gap: 1.2rem;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .question-toolbox {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1.5px solid rgba(32, 147, 119, 0.2);
+            border-radius: 20px;
+            padding: 1.2rem;
+            box-shadow: 0 18px 40px rgba(25, 94, 75, 0.08);
+            position: sticky;
+            top: 1rem;
+        }
+
+        .question-toolbox h3 {
+            margin: 0 0 0.35rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+        .question-toolbox p {
+            margin: 0 0 0.8rem;
+            color: rgba(36, 70, 61, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .toolbox-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .toolbox-item {
+            border: 1.5px dashed rgba(32, 147, 119, 0.35);
+            border-radius: 16px;
+            padding: 0.85rem 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: #fff;
+            cursor: grab;
+            text-align: left;
+            width: 100%;
+            font: inherit;
+            color: inherit;
+        }
+
+        .toolbox-item:focus-visible {
+            outline: 2px solid var(--accent);
+        }
+
+        .toolbox-item.is-dragging {
+            opacity: 0.6;
+        }
+
+        .toolbox-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(32, 147, 119, 0.12);
+            color: var(--accent);
+            display: grid;
+            place-items: center;
+            font-size: 1.15rem;
+        }
+
+        .toolbox-copy {
+            flex: 1;
+        }
+
+        .toolbox-copy strong {
+            display: block;
+            font-size: 0.98rem;
+        }
+
+        .toolbox-copy small {
+            display: block;
+            font-size: 0.82rem;
+            color: rgba(36, 70, 61, 0.65);
+            margin-top: 0.2rem;
+        }
+
+        .question-workspace {
+            display: grid;
+            gap: 1rem;
         }
 
         .question-stack {
             display: grid;
             gap: 1.2rem;
-            min-height: 180px;
+            min-height: 200px;
+            position: relative;
+            border: 2px dashed transparent;
+            border-radius: 24px;
+            padding: 0;
+        }
+
+        .question-stack.is-empty {
+            border-color: rgba(32, 147, 119, 0.35);
+            background: rgba(255, 255, 255, 0.5);
+            min-height: 220px;
+        }
+
+        .question-stack.is-empty::before {
+            content: "Drag a question type here or click one on the left";
+            display: block;
+            color: rgba(36, 70, 61, 0.65);
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .question-stack.is-drop-active {
+            border-color: rgba(32, 147, 119, 0.6);
+            background: rgba(32, 147, 119, 0.06);
         }
 
         .question-card {
@@ -610,6 +718,15 @@
         .question-title-input:focus {
             outline: none;
             border-bottom-color: var(--accent);
+        }
+
+        .question-type-badge {
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(32, 147, 119, 0.12);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.85rem;
         }
 
         .question-type-select {
@@ -816,28 +933,6 @@
             transform: translateX(18px);
         }
 
-        .add-question-button {
-           width: 46px;
-           height: 46px;
-           border-radius: 14px;
-           border: none;
-           background: linear-gradient(135deg, #1dae8b 0%, #157b63 100%);
-           color: #f9fffc;
-           font-size: 1.8rem;
-           display: grid;
-           place-items: center;
-           cursor: pointer;
-           box-shadow: 0 18px 28px rgba(21, 123, 99, 0.25);
-           position: fixed;
-           bottom: 2rem;
-           right: 2rem;
-           z-index: 90;
-        }
-
-        .add-question-button:active {
-            transform: translateY(1px);
-        }
-
         .question-drop-marker {
             height: 14px;
             border-radius: 8px;
@@ -901,7 +996,7 @@
 
         @media (max-width: 1220px) {
             .question-board {
-                display: grid;
+                grid-template-columns: 220px minmax(0, 1fr);
                 gap: 1rem;
             }
         }
@@ -936,6 +1031,14 @@
 
             .sidebar__bottom {
                 display: none;
+            }
+
+            .question-board {
+                grid-template-columns: 1fr;
+            }
+
+            .question-toolbox {
+                position: static;
             }
 
             .content {
@@ -1016,106 +1119,110 @@
                             <textarea id="survey-description" class="survey-description-input" maxlength="30" placeholder="Form Description" aria-label="Survey description">{{ editing_payload.description|default_if_none:'' }}</textarea>
                         </div>
                         <div class="question-board">
-                            <div class="question-stack" id="question-stack">
-                                {% if editing_payload and editing_payload.questions %}
-                                    {% for question in editing_payload.questions %}
-                                        {% with type=question.question_type %}
-                                            <article class="question-card" draggable="false" data-question-id="q-{{ question.id|default:forloop.counter }}" data-question-type="{{ type }}" data-initialized="true">
-                                                <div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>
-                                                <div class="question-card__body">
-                                                    <input type="text" class="question-title-input" value="{{ question.title|default:'' }}" aria-label="Question title">
-                                                    <div class="question-dynamic" data-role="question-fields">
-                                                        {% if type == 'multiple_choice' %}
-                                                            <ul class="options-list" data-role="options-list">
-                                                                {% for choice in question.choices %}
-                                                                    <li class="options-item">
-                                                                        <span aria-hidden="true">◉</span>
-                                                                        <input type="text" class="question-field" value="{{ choice|default:'' }}" aria-label="Choice label">
-                                                                        <button type="button" data-action="remove-option" aria-label="Remove option">✕</button>
-                                                                    </li>
-                                                                {% endfor %}
-                                                            </ul>
-                                                            <button type="button" class="add-inline-button" data-action="add-option"><span aria-hidden="true">+</span> Add Option</button>
-                                                        {% elif type == 'likert' %}
-                                                            <div class="likert-editor">
-                                                                <div class="likert-editor-list" data-role="likert-list">
-                                                                    {% for label in question.scale_labels %}
-                                                                        <div class="likert-editor-row">
-                                                                            <input type="text" value="{{ label|default:'' }}" placeholder="Label (optional)" data-role="likert-input">
-                                                                            <button type="button" class="likert-remove" data-action="likert-remove" aria-label="Remove likert option">×</button>
-                                                                        </div>
+                            <aside class="question-toolbox" id="question-toolbox" aria-label="Question elements">
+                                <h3>Question Elements</h3>
+                                <p>Drag a type to the canvas or click to add it.</p>
+                                <div class="toolbox-list">
+                                    <button type="button" class="toolbox-item" data-question-type="multiple_choice" draggable="true">
+                                        <span class="toolbox-icon" aria-hidden="true">≡</span>
+                                        <span class="toolbox-copy">
+                                            <strong>Multiple Choice</strong>
+                                            <small>Select one answer</small>
+                                        </span>
+                                    </button>
+                                    <button type="button" class="toolbox-item" data-question-type="likert" draggable="true">
+                                        <span class="toolbox-icon" aria-hidden="true">↔</span>
+                                        <span class="toolbox-copy">
+                                            <strong>Likert Scale</strong>
+                                            <small>Measure agreement</small>
+                                        </span>
+                                    </button>
+                                    <button type="button" class="toolbox-item" data-question-type="short_text" draggable="true">
+                                        <span class="toolbox-icon" aria-hidden="true">✎</span>
+                                        <span class="toolbox-copy">
+                                            <strong>Short Text</strong>
+                                            <small>Free response</small>
+                                        </span>
+                                    </button>
+                                </div>
+                            </aside>
+                            <div class="question-workspace">
+                                <div class="question-stack {% if not editing_payload or not editing_payload.questions %}is-empty{% endif %}" id="question-stack">
+                                    {% if editing_payload and editing_payload.questions %}
+                                        {% for question in editing_payload.questions %}
+                                            {% with type=question.question_type %}
+                                                <article class="question-card" draggable="false" data-question-id="q-{{ question.id|default:forloop.counter }}" data-question-type="{{ type }}" data-initialized="true">
+                                                    <div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>
+                                                    <div class="question-card__body">
+                                                        <input type="text" class="question-title-input" value="{{ question.title|default:'' }}" aria-label="Question title">
+                                                        <div class="question-dynamic" data-role="question-fields">
+                                                            {% if type == 'multiple_choice' %}
+                                                                <ul class="options-list" data-role="options-list">
+                                                                    {% for choice in question.choices %}
+                                                                        <li class="options-item">
+                                                                            <span aria-hidden="true">◉</span>
+                                                                            <input type="text" class="question-field" value="{{ choice|default:'' }}" aria-label="Choice label">
+                                                                            <button type="button" data-action="remove-option" aria-label="Remove option">✕</button>
+                                                                        </li>
                                                                     {% endfor %}
-                                                                </div>
-                                                                <div class="likert-editor-actions">
-                                                                    <button type="button" class="add-inline-button" data-action="likert-add"><span aria-hidden="true">+</span> Add</button>
-                                                                </div>
-                                                                <div class="likert-preview">
-                                                                    <span class="likert-preview-title">Preview</span>
-                                                                    <div class="likert-preview-options" data-role="likert-preview">
+                                                                </ul>
+                                                                <button type="button" class="add-inline-button" data-action="add-option"><span aria-hidden="true">+</span> Add Option</button>
+                                                            {% elif type == 'likert' %}
+                                                                <div class="likert-editor">
+                                                                    <div class="likert-editor-list" data-role="likert-list">
                                                                         {% for label in question.scale_labels %}
-                                                                            <div class="likert-preview-option">{{ label|default:"Label " }}{% if not label %}{{ forloop.counter }}{% endif %}</div>
+                                                                            <div class="likert-editor-row">
+                                                                                <input type="text" value="{{ label|default:'' }}" placeholder="Label (optional)" data-role="likert-input">
+                                                                                <button type="button" class="likert-remove" data-action="likert-remove" aria-label="Remove likert option">×</button>
+                                                                            </div>
                                                                         {% endfor %}
                                                                     </div>
+                                                                    <div class="likert-editor-actions">
+                                                                        <button type="button" class="add-inline-button" data-action="likert-add"><span aria-hidden="true">+</span> Add</button>
+                                                                    </div>
+                                                                    <div class="likert-preview">
+                                                                        <span class="likert-preview-title">Preview</span>
+                                                                        <div class="likert-preview-options" data-role="likert-preview">
+                                                                            {% for label in question.scale_labels %}
+                                                                                <div class="likert-preview-option">{{ label|default:"Label " }}{% if not label %}{{ forloop.counter }}{% endif %}</div>
+                                                                            {% endfor %}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        {% else %}
-                                                            <input type="text" class="question-field" placeholder="Short answer text" aria-label="Short answer text preview" disabled>
-                                                        {% endif %}
+                                                            {% else %}
+                                                                <input type="text" class="question-field" placeholder="Short answer text" aria-label="Short answer text preview" disabled>
+                                                            {% endif %}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="question-card__meta">
-                                                    <select class="question-type-select" aria-label="Question type">
-                                                        <option value="short_text" {% if type == 'short_text' %}selected{% endif %}>Short Text</option>
-                                                        <option value="multiple_choice" {% if type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
-                                                        <option value="likert" {% if type == 'likert' %}selected{% endif %}>Likert Scale</option>
-                                                    </select>
-                                                    <div class="question-actions">
-                                                        <button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>
-                                                        <button type="button" data-action="delete" aria-label="Delete question">🗑</button>
-                                                    </div>
-                                                    <label class="required-toggle">
-                                                        Required
-                                                        <span class="switch">
-                                                            <input type="checkbox" {% if question.is_required %}checked{% endif %}>
-                                                            <span class="slider"></span>
+                                                    <div class="question-card__meta">
+                                                        <span class="question-type-badge" data-role="question-type-label">
+                                                            {% if type == 'multiple_choice' %}
+                                                                Multiple Choice
+                                                            {% elif type == 'likert' %}
+                                                                Likert Scale
+                                                            {% else %}
+                                                                Short Text
+                                                            {% endif %}
                                                         </span>
-                                                    </label>
-                                                </div>
-                                            </article>
-                                        {% endwith %}
-                                    {% endfor %}
-                                {% else %}
-                                    <article class="question-card" draggable="false" data-question-id="q-1" data-question-type="short_text">
-                                        <div class="question-card__handle" role="button" aria-label="Drag to reorder question">⋮⋮</div>
-                                        <div class="question-card__body">
-                                            <input type="text" class="question-title-input" value="Untitled Question" aria-label="Question title">
-                                            <div class="question-dynamic" data-role="question-fields">
-                                                <input type="text" class="question-field" placeholder="Short answer text" aria-label="Short answer text preview" disabled>
-                                            </div>
-                                        </div>
-                                        <div class="question-card__meta">
-                                            <select class="question-type-select" aria-label="Question type">
-                                                <option value="short_text" selected>Short Text</option>
-                                                <option value="multiple_choice">Multiple Choice</option>
-                                                <option value="likert">Likert Scale</option>
-                                            </select>
-                                            <div class="question-actions">
-                                                <button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>
-                                                <button type="button" data-action="delete" aria-label="Delete question">🗑</button>
-                                            </div>
-                                            <label class="required-toggle">
-                                                Required
-                                                <span class="switch">
-                                                    <input type="checkbox" checked>
-                                                    <span class="slider"></span>
-                                                </span>
-                                            </label>
-                                        </div>
-                                    </article>
-                                {% endif %}
-                                <div class="question-drop-marker" id="question-drop-marker" aria-hidden="true"></div>
+                                                        <div class="question-actions">
+                                                            <button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>
+                                                            <button type="button" data-action="delete" aria-label="Delete question">🗑</button>
+                                                        </div>
+                                                        <label class="required-toggle">
+                                                            Required
+                                                            <span class="switch">
+                                                                <input type="checkbox" {% if question.is_required %}checked{% endif %}>
+                                                                <span class="slider"></span>
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                </article>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="question-drop-marker" id="question-drop-marker" aria-hidden="true"></div>
+                                </div>
                             </div>
-                            <button class="add-question-button" type="button" id="add-question-btn" aria-label="Add question">+</button>
                         </div>
                     </div>
                     <div class="survey-panel is-hidden" data-panel="settings">
@@ -1354,7 +1461,6 @@
             const initialSurveyData = initialSurveyElement ? JSON.parse(initialSurveyElement.textContent) : null;
 
             const stack = builder.querySelector('#question-stack');
-            const addButton = builder.querySelector('#add-question-btn');
             const dropMarker = builder.querySelector('#question-drop-marker');
             const tabButtons = document.querySelectorAll('.pill-tabs button[data-view]');
             const panels = builder.querySelectorAll('[data-panel]');
@@ -1367,6 +1473,12 @@
             const responsesBtn = document.getElementById('view-responses-btn');
             const sectionInputs = builder.querySelectorAll('input[name="assigned_sections"]');
             const availabilityInputs = builder.querySelectorAll('input[name="survey_availability"]');
+            const toolbox = document.getElementById('question-toolbox');
+            const typeLabels = {
+                short_text: 'Short Text',
+                multiple_choice: 'Multiple Choice',
+                likert: 'Likert Scale',
+            };
             if (!stack || !dropMarker) {
                 return;
             }
@@ -1408,6 +1520,17 @@
                 dropMarker.classList.remove('is-visible');
                 dropMarker.remove();
                 stack.appendChild(dropMarker);
+            }
+
+            function getTypeLabel(type) {
+                return typeLabels[type] || 'Question';
+            }
+
+            function updateTypeBadge(card, type) {
+                const badge = card.querySelector('[data-role="question-type-label"]');
+                if (badge) {
+                    badge.textContent = getTypeLabel(type);
+                }
             }
 
             function showView(view) {
@@ -1539,6 +1662,7 @@
                 }
                 container.innerHTML = '';
                 card.dataset.questionType = type;
+                updateTypeBadge(card, type);
 
                 if (type === 'short_text') {
                     const input = document.createElement('input');
@@ -1587,11 +1711,7 @@
                         '<div class="question-dynamic" data-role="question-fields"></div>' +
                     '</div>' +
                     '<div class="question-card__meta">' +
-                        '<select class="question-type-select" aria-label="Question type">' +
-                            '<option value="short_text"' + (type === 'short_text' ? ' selected' : '') + '>Short Text</option>' +
-                            '<option value="multiple_choice"' + (type === 'multiple_choice' ? ' selected' : '') + '>Multiple Choice</option>' +
-                            '<option value="likert"' + (type === 'likert' ? ' selected' : '') + '>Likert Scale</option>' +
-                        '</select>' +
+                        '<span class="question-type-badge" data-role="question-type-label">' + getTypeLabel(type) + '</span>' +
                         '<div class="question-actions">' +
                             '<button type="button" data-action="duplicate" aria-label="Duplicate question">⧉</button>' +
                             '<button type="button" data-action="delete" aria-label="Delete question">🗑</button>' +
@@ -1620,6 +1740,7 @@
             function refreshDeleteButtons() {
                 const cards = stack.querySelectorAll('.question-card');
                 const disableDelete = cards.length <= 1;
+                stack.classList.toggle('is-empty', cards.length === 0);
                 cards.forEach(function(card) {
                     const btn = card.querySelector('[data-action="delete"]');
                     if (btn) {
@@ -1638,7 +1759,7 @@
             }
 
             function addNewQuestion(type) {
-                const card = createQuestionCard(type);
+                const card = createQuestionCard(type || 'short_text');
                 stack.insertBefore(card, dropMarker);
                 refreshDeleteButtons();
                 ensureDropMarkerResting();
@@ -1682,49 +1803,44 @@
                 questionCounter = 0;
 
                 const questions = Array.isArray(data.questions) ? data.questions : [];
-                if (questions.length) {
-                    questions.forEach(function(question) {
-                        const type = question.question_type || 'short_text';
-                        const card = createQuestionCard(type);
-                        const titleField = card.querySelector('.question-title-input');
-                        if (titleField) {
-                            titleField.value = question.title || '';
-                        }
-                        const requiredToggle = card.querySelector('.required-toggle input');
-                        if (requiredToggle) {
-                            requiredToggle.checked = !!question.is_required;
-                        }
+                questions.forEach(function(question) {
+                    const type = question.question_type || 'short_text';
+                    const card = createQuestionCard(type);
+                    const titleField = card.querySelector('.question-title-input');
+                    if (titleField) {
+                        titleField.value = question.title || '';
+                    }
+                    const requiredToggle = card.querySelector('.required-toggle input');
+                    if (requiredToggle) {
+                        requiredToggle.checked = !!question.is_required;
+                    }
 
-                        if (type === 'multiple_choice') {
-                            const list = card.querySelector('.options-list');
+                    if (type === 'multiple_choice') {
+                        const list = card.querySelector('.options-list');
+                        if (list) {
+                            list.innerHTML = '';
+                            const choices = (question.choices && question.choices.length ? question.choices : ['Option 1', 'Option 2']);
+                            choices.forEach(function(choiceText, index) {
+                                list.appendChild(createOptionItem(choiceText || ('Option ' + (index + 1))));
+                            });
+                        }
+                    } else if (type === 'likert') {
+                        const editor = card.querySelector('.likert-editor');
+                        if (editor) {
+                            const list = editor.querySelector('[data-role="likert-list"]');
                             if (list) {
                                 list.innerHTML = '';
-                                const choices = (question.choices && question.choices.length ? question.choices : ['Option 1', 'Option 2']);
-                                choices.forEach(function(choiceText, index) {
-                                    list.appendChild(createOptionItem(choiceText || ('Option ' + (index + 1))));
+                                const labels = (question.scale_labels && question.scale_labels.length ? question.scale_labels : ['Label 1', 'Label 2']);
+                                labels.forEach(function(labelText) {
+                                    list.appendChild(createLikertRow(labelText));
                                 });
                             }
-                        } else if (type === 'likert') {
-                            const editor = card.querySelector('.likert-editor');
-                            if (editor) {
-                                const list = editor.querySelector('[data-role="likert-list"]');
-                                if (list) {
-                                    list.innerHTML = '';
-                                    const labels = (question.scale_labels && question.scale_labels.length ? question.scale_labels : ['Label 1', 'Label 2']);
-                                    labels.forEach(function(labelText) {
-                                        list.appendChild(createLikertRow(labelText));
-                                    });
-                                }
-                                updateLikertPreview(editor);
-                            }
+                            updateLikertPreview(editor);
                         }
+                    }
 
-                        stack.insertBefore(card, dropMarker);
-                    });
-                } else {
-                    const card = createQuestionCard('short_text');
                     stack.insertBefore(card, dropMarker);
-                }
+                });
 
                 refreshDeleteButtons();
                 ensureDropMarkerResting();
@@ -1732,14 +1848,12 @@
             }
 
             stack.querySelectorAll('.question-card').forEach(function(card) {
-                const select = card.querySelector('.question-type-select');
-                const currentType = select ? (select.value || card.dataset.questionType || 'short_text') : (card.dataset.questionType || 'short_text');
-                if (select) {
-                    select.value = currentType;
-                }
+                const currentType = card.dataset.questionType || 'short_text';
                 if (!card.dataset.initialized) {
                     renderQuestionFields(card, currentType);
                     card.dataset.initialized = 'true';
+                } else {
+                    updateTypeBadge(card, currentType);
                 }
                 card.setAttribute('draggable', 'false');
             });
@@ -1771,12 +1885,6 @@
                 });
             }
 
-            if (addButton) {
-                addButton.addEventListener('click', function() {
-                    addNewQuestion('short_text');
-                });
-            }
-
             tabButtons.forEach(function(button) {
                 button.addEventListener('click', function() {
                     const view = button.dataset.view || 'questions';
@@ -1784,17 +1892,41 @@
                 });
             });
 
-            stack.addEventListener('change', function(event) {
-                if (event.target.matches('.question-type-select')) {
-                    const card = event.target.closest('.question-card');
-                    if (card) {
-                        const newType = event.target.value;
-                        renderQuestionFields(card, newType);
-                        card.dataset.questionType = newType;
+            if (toolbox) {
+                toolbox.addEventListener('click', function(event) {
+                    const item = event.target.closest('.toolbox-item');
+                    if (!item) {
+                        return;
                     }
-                }
+                    const type = item.dataset.questionType || 'short_text';
+                    addNewQuestion(type);
+                });
 
-            });
+                toolbox.addEventListener('dragstart', function(event) {
+                    const item = event.target.closest('.toolbox-item');
+                    if (!item) {
+                        return;
+                    }
+                    draggingToolType = item.dataset.questionType || 'short_text';
+                    draggingToolElement = item;
+                    item.classList.add('is-dragging');
+                    stack.classList.add('is-drop-active');
+                    dropMarker.classList.add('is-visible');
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = 'copy';
+                        event.dataTransfer.setData('text/plain', draggingToolType);
+                    }
+                });
+
+                toolbox.addEventListener('dragend', function(event) {
+                    const item = event.target.closest('.toolbox-item');
+                    if (item) {
+                        item.classList.remove('is-dragging');
+                    }
+                    clearToolDragState();
+                    ensureDropMarkerResting();
+                });
+            }
 
             stack.addEventListener('click', function(event) {
                 const target = event.target;
@@ -1808,17 +1940,14 @@
                 }
 
                 if (action === 'duplicate') {
-                    const originalType = card.dataset.questionType || (card.querySelector('.question-type-select') || {}).value || 'short_text';
+                    const originalType = card.dataset.questionType || 'short_text';
                     const clone = card.cloneNode(true);
                     clone.dataset.questionId = nextQuestionId();
                     clone.dataset.initialized = 'true';
                     clone.classList.remove('dragging');
                     clone.setAttribute('draggable', 'false');
-                    const select = clone.querySelector('.question-type-select');
-                    if (select) {
-                        select.value = originalType;
-                    }
                     clone.dataset.questionType = originalType;
+                    updateTypeBadge(clone, originalType);
                     stack.insertBefore(clone, card.nextSibling === dropMarker ? dropMarker : card.nextSibling);
                     const clonedEditor = clone.querySelector('.likert-editor');
                     if (clonedEditor) {
@@ -1920,6 +2049,17 @@
 
             let draggedCard = null;
             let dragReadyCard = null;
+            let draggingToolType = null;
+            let draggingToolElement = null;
+
+            function clearToolDragState() {
+                if (draggingToolElement) {
+                    draggingToolElement.classList.remove('is-dragging');
+                }
+                draggingToolElement = null;
+                draggingToolType = null;
+                stack.classList.remove('is-drop-active');
+            }
 
             stack.addEventListener('pointerdown', function(event) {
                 const card = event.target.closest('.question-card');
@@ -1958,7 +2098,7 @@
             });
 
             stack.addEventListener('dragover', function(event) {
-                if (!draggedCard) {
+                if (!draggedCard && !draggingToolType) {
                     return;
                 }
                 event.preventDefault();
@@ -1972,16 +2112,24 @@
             });
 
             stack.addEventListener('drop', function(event) {
-                if (!draggedCard) {
+                if (!draggedCard && !draggingToolType) {
                     return;
                 }
                 event.preventDefault();
-                stack.insertBefore(draggedCard, dropMarker);
-                draggedCard.classList.remove('dragging');
-                draggedCard = null;
-                resetDragReady();
-                refreshDeleteButtons();
+                if (draggedCard) {
+                    stack.insertBefore(draggedCard, dropMarker);
+                    draggedCard.classList.remove('dragging');
+                    draggedCard = null;
+                    resetDragReady();
+                    refreshDeleteButtons();
+                } else if (draggingToolType) {
+                    const newCard = createQuestionCard(draggingToolType);
+                    stack.insertBefore(newCard, dropMarker);
+                    refreshDeleteButtons();
+                    focusTitle(newCard);
+                }
                 ensureDropMarkerResting();
+                clearToolDragState();
             });
 
             stack.addEventListener('dragend', function() {
@@ -1991,6 +2139,7 @@
                 }
                 resetDragReady();
                 ensureDropMarkerResting();
+                clearToolDragState();
             });
 
             function getDragAfterElement(container, y) {
@@ -2037,7 +2186,7 @@
 
                 const cards = stack.querySelectorAll('.question-card');
                 cards.forEach(function(card, index) {
-                    const typeValue = card.dataset.questionType || (card.querySelector('.question-type-select') || {}).value || 'short_text';
+                    const typeValue = card.dataset.questionType || 'short_text';
                     const questionTitle = (card.querySelector('.question-title-input') || {}).value || '';
                     const isRequired = !!(card.querySelector('.required-toggle input') || { checked: false }).checked;
 
