@@ -151,7 +151,7 @@
             line-height: 2.5;
         }
 
-        .back-link {
+        .back-link, .back-link-top {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -159,6 +159,11 @@
             font-weight: 600;
             color: var(--accent-dark);
             text-decoration: none;
+        }
+
+        .back-link-top {
+            margin-top: 0;
+            margin-bottom: 1rem;
         }
 
         @media (max-width: 640px) {
@@ -170,12 +175,15 @@
 </head>
 <body>
 <div class="response-shell">
+
+<a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link-top">← Back to Survey Collection</a>
+
     <div class="survey-header">
         <span class="badge">Responses</span>
         <h1>{{ survey.title }}</h1>
         <div class="meta-line">
             <!-- <span>Submitted {{ submission.submitted_at|date:"M d, Y H:i" }}</span> -->
-            <span>Prepared by {{ survey.teacher }}</span>
+            <span>Prepared by {{ survey.teacher.first_name }} {{ survey.teacher.last_name }}</span>
         </div>
     </div>
 
@@ -280,7 +288,6 @@
                                 scales: {
                                     y: {
                                         beginAtZero: true,
-                                        max: {{submissions|length}},
                                         ticks: {stepSize: 1}
                                     }
                                 },
