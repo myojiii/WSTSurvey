@@ -11,6 +11,7 @@ urlpatterns = [
     path("student/dashboard/<str:page>/", views.student_dashboard, name="student_dashboard_page"),
     path("student/surveys/<int:assignment_id>/", views.student_take_survey, name="student_take_survey"),
     path("student/responses/<int:submission_id>/", views.student_view_response, name="student_view_response"),
+    # path("teacher/", views.teacher_dashboard, name=""),
     path("teacher/login/", views.teacher_signin, name="teacher_signin"),
     path("teacher/builder/", views.teacher_dashboard, name="teacher_dashboard"),
     path("teacher/<str:page>/", views.teacher_dashboard, name="teacher_dashboard_page"),

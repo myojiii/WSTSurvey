@@ -602,8 +602,137 @@ def teacher_signin(request):
     return redirect("student_signin")
 
 
+
 @login_required(login_url="student_signin")
 def teacher_dashboard(request, page="new"):
+    surveys = Survey.objects.filter(teacher=request.user)
+
+    # 2. Detect selected survey ID from GET
+    selected_id = request.GET.get("survey_id")
+
+    if selected_id:
+        survey = surveys.filter(id=selected_id).prefetch_related("questions__choices").first()
+    else:
+        # Default: first survey
+        survey = surveys.first()
+
+    # Define statuses to exclude
+    excluded_statuses = ["delete", "deleted", "archived", "archive"]
+
+    # All surveys for the teacher excluding the above statuses
+    collection_surveys = Survey.objects.filter(
+        teacher=request.user
+    ).exclude(status__in=excluded_statuses)
+
+    # Total surveys (after exclusion)
+    total_surveys = collection_surveys.count()
+
+    # Active surveys (status == "Open")
+    active_surveys = collection_surveys.filter(status="Open").count()
+
+    # Total responses across all surveys (consider only non-excluded surveys)
+    total_responses = SurveySubmission.objects.filter(survey__in=collection_surveys).count()
+
+    submissions = []
+    answers = []
+    summary_list = []
+    tempasd = 0
+    survey_id = []
+    collection_surveys = []
+
+    collection_surveys = Survey.objects.filter(teacher=request.user)
+
+    survey_title = "<Survey Title>"
+
+    if page == "dashboard":
+        selected_id = request.GET.get("survey_id")
+
+        if selected_id:
+            selected_id = int(selected_id)
+
+        else:
+            # Default: select the first survey in the list
+            selected_id = collection_surveys.first().id
+
+        # 2. Load the survey object based on selected ID
+        survey = Survey.objects.filter(id=selected_id, teacher=request.user).first()
+
+
+
+        collection_surveys = (
+            Survey.objects.filter(teacher=request.user)
+            .prefetch_related("assignments__section")
+            .order_by("-updated_at")
+        )
+
+
+        if survey:
+            survey_title = survey.title if survey else ""
+
+            submissions = (
+                SurveySubmission.objects
+                .filter(survey=survey)
+                .select_related("student__user")
+                .prefetch_related("answers__question", "answers__selected_choice")
+            )
+
+
+            # flatten answers
+            for submission in submissions:
+                answers.extend(submission.answers.all())
+                tempasd = tempasd+1
+
+            # Build summaries
+            for question in survey.questions.all():
+
+                question_answers = [a for a in answers if a.question_id == question.id]
+
+                if question.question_type in ["MCQ", "LIKERT"]:
+                    choice_counts = {c.text: 0 for c in question.choices.all()}
+
+                    for a in question_answers:
+                        if a.selected_choice:
+                            choice_counts[a.selected_choice.text] += 1
+
+                    summary_list.append({
+                        "question": question,
+                        "type": question.question_type,
+                        "choices": list(choice_counts.items()),
+                        "choice_labels": list(choice_counts.keys()),
+                        "choice_values": list(choice_counts.values()),
+                        "response_count": len(question_answers)
+                    })
+
+                elif question.question_type == "SHORT":
+                    short_texts_orig = [a.text_response for a in question_answers if a.text_response]
+
+                    summary_entry = {
+                        "question": question,
+                        "type": "SHORT",
+                        "short_answers_orig": short_texts_orig,
+                        "response_count": len(short_texts_orig),
+                    }
+
+                    # Generate wordcloud if there are answers
+                    if short_texts_orig:
+                        short_texts_clean = [t.strip().lower() for t in short_texts_orig]
+                        text_blob = " ".join(short_texts_clean)
+                        words = re.findall(r"\b[^\d\W]\w+\b", text_blob)
+
+                        stopwords = set(STOPWORDS)
+                        filtered = [w for w in words if w not in stopwords and len(w) > 2]
+                        freqs = Counter(filtered) or {"(no responses)": 1}
+
+                        wc = WordCloud(width=800, height=400, background_color="white",
+                                       collocations=False, max_words=200).generate_from_frequencies(freqs)
+
+                        buffer = BytesIO()
+                        wc.to_image().save(buffer, format="PNG")
+                        img_b64 = base64.b64encode(buffer.getvalue()).decode()
+                        summary_entry["wordcloud_b64"] = img_b64
+
+                        summary_list.append(summary_entry)
+                    print(f"Question {question.id}: {len(question_answers)} answers")
     """Simple landing page for the teacher account."""
     if request.user.username != _teacher_username():
         if hasattr(request.user, "student_profile"):
@@ -633,18 +762,17 @@ def teacher_dashboard(request, page="new"):
             for letter in letters
         ]
 
-    collection_surveys = []
-    if page == "collection":
-        collection_surveys = (
-            Survey.objects.filter(teacher=request.user)
-            .prefetch_related("assignments__section")
-            .order_by("-updated_at")
-        )
+        # collection_surveys = (
+        #     Survey.objects.filter(teacher=request.user)
+        #     .prefetch_related("assignments__section")
+        #     .order_by("-updated_at")
+        # )
 
     # Handle Responses History page
     responses_data = None
     paginator = None
     all_sections = []
+
     if page == "history":
         responses = SurveySubmission.objects.filter(
             is_submitted=True
@@ -793,6 +921,18 @@ def teacher_dashboard(request, page="new"):
             "responses": responses_data,
             "paginator": paginator,
             "all_sections": all_sections,
+            "surveys": surveys,
+            "survey": survey,
+            "summary_list": summary_list,
+            "submissions": submissions,
+            "selected_id": selected_id,
+
+            "selected_survey_id": selected_id,
+            "survey_title": survey_title,
+    "total_surveys": total_surveys,
+    "active_surveys": active_surveys,
+    "total_responses": total_responses,
+
         },
     )
 
@@ -1073,6 +1213,7 @@ def teacher_analytics(request, survey_id):
     }
 
     return render(request, template, context)
+
 
 
 def logout_view(request):
