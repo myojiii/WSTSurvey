@@ -1392,7 +1392,7 @@
                                     <td>{{ submission.survey.title }}</td>
                                     <td>{{ submission.submitted_at|timezone:"Asia/Manila"|date:"M d, Y g:i A" }}</td>
                                     <td style="text-align:right;">
-                                        <a href="{% url 'student_view_response' submission.id %}" class="action-link">View Response</a>
+                                        <a href="{% url 'teacher_view_student_response' submission.id %}" class="action-link">View Response</a>
                                     </td>
                                 </tr>
                                 {% empty %}
@@ -1943,6 +1943,7 @@
                     const originalType = card.dataset.questionType || 'short_text';
                     const clone = card.cloneNode(true);
                     clone.dataset.questionId = nextQuestionId();
+                   
                     clone.dataset.initialized = 'true';
                     clone.classList.remove('dragging');
                     clone.setAttribute('draggable', 'false');

@@ -1,0 +1,371 @@
+<!-- filepath: c:\Users\reyma\Desktop\WST\WSTSurvey\main\templates\main\teacher_view_student_response.html -->
+{% load static %}
+{% load tz %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Response · {{ survey.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #1b9a7f;
+            --accent-dark: #0d7358;
+            --bg-soft: #f4faf7;
+            --text: #1c3c33;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-soft);
+            color: var(--text);
+        }
+
+        .back-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            box-shadow: 0 8px 24px rgba(27, 154, 127, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(27, 154, 127, 0.45);
+        }
+
+        .response-shell {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 2.6rem 1.8rem 4rem;
+        }
+
+        .student-info-card {
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 12px 32px rgba(27, 154, 127, 0.25);
+        }
+
+        .student-info-card h2 {
+            margin: 0 0 0.4rem;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .student-badge {
+            display: inline-block;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.25);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .student-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            opacity: 0.95;
+        }
+
+        .student-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .survey-header {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.6rem;
+            border: 1.2px solid rgba(27, 154, 127, 0.18);
+            box-shadow: 0 8px 24px rgba(27, 154, 127, 0.08);
+        }
+
+        .survey-header h1 {
+            margin: 0 0 0.6rem;
+            font-size: clamp(1.6rem, 4vw, 2rem);
+            color: var(--text);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(27, 154, 127, 0.16);
+            color: var(--accent-dark);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .meta-line {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            margin-top: 0.9rem;
+            font-size: 0.9rem;
+            color: rgba(28, 60, 51, 0.68);
+        }
+
+        .question-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 1.6rem 1.8rem;
+            margin-bottom: 1.4rem;
+            border: 1.2px solid rgba(27, 154, 127, 0.18);
+            box-shadow: 0 12px 28px rgba(27, 154, 127, 0.09);
+        }
+
+        .question-card h3 {
+            margin: 0 0 0.6rem;
+            font-size: 1.15rem;
+            color: var(--text);
+        }
+
+        .question-card small {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(28, 60, 51, 0.55);
+        }
+
+        .question-card p.description {
+            margin: 0.6rem 0 0.9rem;
+            color: rgba(28, 60, 51, 0.7);
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .options-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.7rem 0.9rem;
+            border-radius: 12px;
+            background: rgba(27, 154, 127, 0.06);
+            border: 1px solid transparent;
+        }
+
+        .options-list li.is-selected {
+            background: linear-gradient(135deg, rgba(27, 154, 127, 0.22) 0%, rgba(13, 115, 88, 0.22) 100%);
+            border-color: rgba(27, 154, 127, 0.35);
+            font-weight: 600;
+        }
+
+        .options-list li .icon {
+            font-size: 1.2rem;
+        }
+
+        .likert-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .likert-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 16px;
+            background: rgba(27, 154, 127, 0.08);
+            min-width: 120px;
+            font-weight: 500;
+            border: 1.5px solid transparent;
+        }
+
+        .likert-option.is-selected {
+            background: linear-gradient(135deg, rgba(27, 154, 127, 0.24) 0%, rgba(13, 115, 88, 0.24) 100%);
+            border-color: rgba(27, 154, 127, 0.4);
+            color: var(--accent-dark);
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(27, 154, 127, 0.15);
+        }
+
+        .answer-text {
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            background: rgba(27, 154, 127, 0.07);
+            border: 1.4px dashed rgba(27, 154, 127, 0.3);
+            color: rgba(28, 60, 51, 0.9);
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .no-answer {
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            background: rgba(150, 150, 150, 0.08);
+            border: 1.4px dashed rgba(150, 150, 150, 0.3);
+            color: rgba(28, 60, 51, 0.5);
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+            }
+
+            .response-shell {
+                padding: 2rem 1.1rem 3.2rem;
+            }
+
+            .student-meta {
+                gap: 1rem;
+            }
+
+            .likert-row {
+                gap: 0.6rem;
+            }
+
+            .likert-option {
+                min-width: 90px;
+                padding: 0.7rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'teacher_dashboard_page' 'history' %}" class="back-link" title="Back to Responses History">
+        ←
+    </a>
+
+    <div class="response-shell">
+        <div class="student-info-card">
+            <h2>
+                {{ submission.student.user.get_full_name }}
+                <span class="student-badge">Student</span>
+            </h2>
+            <div class="student-meta">
+                <div class="student-meta-item">
+                    <span>📧</span>
+                    <span>{{ submission.student.user.email }}</span>
+                </div>
+                {% if submission.student.section %}
+                <div class="student-meta-item">
+                    <span>🎓</span>
+                    <span>Section: {{ submission.student.section.section_id }}</span>
+                </div>
+                {% endif %}
+                <div class="student-meta-item">
+                    <span>📅</span>
+                    <span>Submitted: {{ submission.submitted_at|timezone:"Asia/Manila"|date:"M d, Y g:i A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="survey-header">
+            <span class="badge">Survey Response</span>
+            <h1>{{ survey.title }}</h1>
+            {% if survey.description %}
+            <p class="meta-line">{{ survey.description }}</p>
+            {% endif %}
+            <div class="meta-line">
+                <span>📝 {{ questions|length }} question(s)</span>
+                <span>👤 Assigned by: {{ teacher_name }}</span>
+            </div>
+        </div>
+
+        {% for question in questions %}
+            <article class="question-card">
+                <h3>{{ forloop.counter }}. {{ question.title }}</h3>
+                {% if question.description %}
+                    <p class="description">{{ question.description }}</p>
+                {% endif %}
+                <small>
+                    {% if question.type == "MCQ" %}
+                        Multiple Choice
+                    {% elif question.type == "LIKERT" %}
+                        Likert Scale
+                    {% else %}
+                        Short Answer
+                    {% endif %}
+                    {% if question.is_required %} · Required{% endif %}
+                </small>
+
+                {% if question.type == "MCQ" %}
+                    <ul class="options-list">
+                        {% for choice in question.choices %}
+                            <li class="{% if question.selected_choice|stringformat:"s" == choice.id|stringformat:"s" %}is-selected{% endif %}">
+                                <span class="icon">{% if question.selected_choice|stringformat:"s" == choice.id|stringformat:"s" %}✓{% else %}○{% endif %}</span>
+                                <span>{{ choice.text }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% if not question.selected_choice %}
+                        <div class="no-answer">No answer provided</div>
+                    {% endif %}
+                {% elif question.type == "LIKERT" %}
+                    <div class="likert-row">
+                        {% for option in question.likert_pairs %}
+                            <div class="likert-option {% if question.selected_choice|stringformat:"s" == option.choice_id|stringformat:"s" %}is-selected{% endif %}">
+                                <span>{{ option.label }}</span>
+                                {% if question.selected_choice|stringformat:"s" == option.choice_id|stringformat:"s" %}
+                                    <span style="font-size: 1.4rem;">✓</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if not question.selected_choice %}
+                        <div class="no-answer" style="margin-top: 1rem;">No answer provided</div>
+                    {% endif %}
+                {% else %}
+                    {% if question.answer_text %}
+                        <div class="answer-text">{{ question.answer_text }}</div>
+                    {% else %}
+                        <div class="no-answer">No answer provided</div>
+                    {% endif %}
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
+</body>
+</html>

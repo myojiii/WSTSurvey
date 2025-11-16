@@ -1133,3 +1133,63 @@ def teacher_responses_history(request):
     }
 
     return render(request, 'main/teacher_responses_history.html', context)
+
+
+@login_required(login_url="student_signin")
+def teacher_view_student_response(request, submission_id):
+    """Teacher view for viewing student responses"""
+    if request.user.username != _teacher_username():
+        if hasattr(request.user, "student_profile"):
+            return redirect("student_dashboard")
+        return redirect("student_signin")
+    
+    # Get the submission
+    submission = get_object_or_404(
+        SurveySubmission.objects.select_related(
+            "survey", "survey__teacher", "student", "student__user", "student__section"
+        ),
+        id=submission_id,
+        is_submitted=True,
+    )
+
+    survey = submission.survey
+    question_qs = (
+        survey.questions.order_by("order_number")
+        .select_related("likertquestion", "shortanswerquestion")
+        .prefetch_related("choices")
+    )
+    questions_payload = _serialize_questions(question_qs)
+    answers_map = {
+        answer.question_id: answer
+        for answer in submission.answers.select_related("selected_choice")
+    }
+
+    for item in questions_payload:
+        answer = answers_map.get(item["id"])
+        if item["type"] in {"MCQ", "LIKERT"}:
+            selected_id = ""
+            selected_text = ""
+            if answer and answer.selected_choice:
+                selected_id = str(answer.selected_choice_id)
+                selected_text = answer.selected_choice.text
+            item["selected_choice"] = selected_id
+            item["selected_text"] = selected_text
+        else:
+            item["answer_text"] = answer.text_response if answer else ""
+
+    teacher = survey.teacher
+    if teacher:
+        teacher_name = teacher.get_full_name() or teacher.username
+    else:
+        teacher_name = "Administrator"
+
+    return render(
+        request,
+        "main/teacher_view_student_response.html",
+        {
+            "survey": survey,
+            "questions": questions_payload,
+            "teacher_name": teacher_name,
+            "submission": submission,
+        },
+    )

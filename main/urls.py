@@ -18,6 +18,7 @@ urlpatterns = [
     path("teacher/surveys/<int:survey_id>/preview/", views.teacher_preview_survey, name="teacher_preview_survey"),
     path("teacher/responses-history/", views.teacher_responses_history, name="teacher_responses_history"),
     path("teacher/surveys/<int:survey_id>/responses/", views.teacher_analytics, name="teacher_analytics"),
+    path("teacher/response/<int:submission_id>/", views.teacher_view_student_response, name="teacher_view_student_response"),
     path("logout/", views.logout_view, name="logout"),
     path("__reload/", include("django_browser_reload.urls"))
 ]
