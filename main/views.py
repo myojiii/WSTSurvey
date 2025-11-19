@@ -142,7 +142,7 @@ def student_signin(request):
 
     if request.user.is_authenticated:
         if request.user.username == teacher_user.username:
-            return redirect("teacher_dashboard")
+            return redirect("teacher_dashboard_page", page="dashboard")
         if hasattr(request.user, "student_profile"):
             return redirect("student_dashboard")
 
@@ -158,7 +158,7 @@ def student_signin(request):
             form.add_error(None, "Invalid email or password.")
         elif user.username == teacher_user.username:
             login(request, user)
-            return redirect("teacher_dashboard")
+            return redirect("teacher_dashboard_page", page="dashboard")
         elif hasattr(user, "student_profile"):
             login(request, user)
             return redirect("student_dashboard")
@@ -209,7 +209,7 @@ def student_dashboard(request, page="assigned"):
     """Landing page for authenticated students."""
     if not hasattr(request.user, "student_profile"):
         if request.user.username == _teacher_username():
-            return redirect("teacher_dashboard")
+            return redirect("teacher_dashboard_page", page="dashboard")
         return redirect("student_signin")
 
     page = page.lower()
@@ -344,7 +344,7 @@ def student_take_survey(request, assignment_id):
     """Allow a student to respond to a published survey assigned to their section."""
     if not hasattr(request.user, "student_profile"):
         if request.user.username == _teacher_username():
-            return redirect("teacher_dashboard")
+            return redirect("teacher_dashboard_page", page="dashboard")
         return redirect("student_signin")
 
     profile = request.user.student_profile
@@ -598,7 +598,7 @@ def teacher_signin(request):
     """Redirect teachers to the unified sign-in screen after ensuring the account exists."""
     teacher_user = _ensure_teacher_account()
     if request.user.is_authenticated and request.user.username == teacher_user.username:
-        return redirect("teacher_dashboard")
+        return redirect("teacher_dashboard_page", page="dashboard")
     return redirect("student_signin")
 
 
