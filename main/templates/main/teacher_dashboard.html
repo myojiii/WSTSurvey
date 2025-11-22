@@ -236,7 +236,7 @@
             gap: 1.2rem;
 
             position: sticky;
-            top: 4.75rem;
+            top: 5rem;
             z-index: 50;
         }
 
@@ -1208,6 +1208,37 @@
             background-position: right 0.5rem center;
             padding-right: 2rem;
         }
+
+        .delete-survey-button {
+    background: #e53935;       /* Red */
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.delete-survey-button:hover {
+    background: #c62828;       /* Darker red on hover */
+}
+        .survey-info-card {
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            color: white;
+
+            position: sticky;
+            top: 1.75rem;
+            z-index: 51;
+
+
+            box-shadow: 0 12px 32px rgba(27, 154, 127, 0.25);
+        }
+
+        .survey-info-card span{
+            color: var(--bg-soft);
+        }
     </style>
 </head>
 <body>
@@ -1248,7 +1279,7 @@
     {% if active_page == 'collection' %}
         Survey Collection
     {% elif active_page == 'dashboard' %}
-        Dashboard
+        Overall Surveys
     {% elif active_page == 'history' %}
         Responses History
     {% else %}
@@ -1288,7 +1319,7 @@
             {% endif %}
             <button class="secondary-action" type="button" id="preview-btn">Preview</button>
             <button class="secondary-action" type="button" id="save-draft-btn">Save to Draft</button>
-            <button class="secondary-action" type="button" id="view-responses-btn">View Responses</button>
+<!--            <button class="secondary-action" type="button" id="view-responses-btn">View Responses</button>-->
             <button class="primary-action" type="button" id="publish-btn">Publish</button>
         </div>
     {% else %}
@@ -1456,7 +1487,14 @@
                                 <input type="datetime-local" id="survey-due-date" name="due_date" class="survey-input selector-input" aria-label="Survey due date" value="{{ editing_payload.due_date|default:'' }}">
                             </div>
                         </div>
+                        <div class="survey-footer-actions"
+     style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+    <button type="button" id="delete-survey-btn" class="delete-survey-button">
+        Delete Survey
+    </button>
+</div>
                     </div>
+
                 </section>
             {% elif active_page == 'collection' %}
                 <section class="survey-builder">
@@ -1493,7 +1531,8 @@
                                             <td>{{ survey.updated_at|date:"M d, Y · H:i" }}</td>
                                             <td style="text-align:right;">
                                                 <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="action-link" style="margin-right:0.8rem;">Edit</a>
-                                                <a href="{% url 'teacher_preview_survey' survey.id %}" target="_blank" class="action-link">Preview</a>
+<!--                                                <a href="{% url 'teacher_preview_survey' survey.id %}" target="_blank" class="action-link">Analytics</a>-->
+                                                <a href="/teacher/surveys/{{ survey.id }}/responses" target="_blank" class="action-link">Analytics</a>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -1615,46 +1654,22 @@
                 </section>
             {% elif active_page == 'dashboard' %}
 
-            <section class="survey-builder">
+            <section class="survey-builder" id = "surveyTitle"  style="position: sticky;
+            top: 5.75rem;
+            z-index: 51;">
+
                     <div  data-panel="dashboard">
-                        <div class="module-block" style=" align-items: top; gap: 0.5rem; margin-bottom: 0rem;">
-
-<!--                            <h2> Survey: </h2>-->
-
-<!--            <form method="GET" id="surveySelectForm">-->
-<!--    <select name="survey_id" id="surveySelect"-->
-<!--            onchange="document.getElementById('surveySelectForm').submit();"-->
-<!--            style="-->
-<!--                font-size: 2rem;-->
-<!--                font-weight: 700;-->
-<!--                background: none;-->
-<!--                border: none;-->
-<!--                cursor: pointer;-->
-<!--                outline: none;-->
-<!--&lt;!&ndash;                margin-bottom: 1rem;&ndash;&gt;-->
-
-
-<!--                padding: 0;-->
-<!--                color: inherit;-->
-<!--            ">-->
-<!--        {% for s in collection_surveys %}-->
-<!--            <option value="{{ s.id }}" {% if s.id == selected_survey_id %}selected{% endif %}>-->
-<!--                 {{ s.title }}-->
-<!--            </option>-->
-<!--        {% endfor %}-->
-<!--    </select>-->
-<!--</form>-->
-<!--                            <p>Click the title to select other survey.</p>-->
+                        <div class="module-block survey-info-card" style="align-items: top; gap: 0.5rem; margin-bottom: 0rem;">
 
                             <!-- Title as clickable element -->
-
-    <h1 id="surveyTitle" style="cursor: pointer; display: inline-block; margin:0rem;">
+    <h1 id="surveyTitle"  style="cursor: pointer; display: inline-block; margin:0rem;">
         {{ survey_title }}
     </h1>
              <p>Click the title to select other survey.</p>
 
 
 <!-- Modal / Popup -->
+
 <div id="surveyModal" style="
     display: none;
     position: fixed;
@@ -1679,7 +1694,7 @@
         <input type="text" id="surveySearch" placeholder="Search surveys..."
                style="padding: 0.5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc;">
 
-        <ul id="surveyList" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+        <ul id="surveyList" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;color: black;">
             {% for s in collection_surveys %}
                 <li data-id="{{ s.id }}" style="padding: 0.5rem; cursor: pointer; border-radius: 4px;">
                     {{ s.title }}
@@ -1703,16 +1718,23 @@
 <form id="surveySelectForm" method="GET" style="display:none;">
     <input type="hidden" name="survey_id" id="selectedSurveyId" value="{{ selected_survey_id }}">
 </form>
+
                         </div>
                     </div>
             </section>
-
+                                    <article class="module-block">
+        <h2 style="margin-bottom: 1em;">Respondents:</h2>
+<div style="overflow-y:scroll" class="answer-text">{% for submission in submissions %}<a href="{% url 'teacher_view_student_response' submission.id %}" class="action-link">{{ submission.get_respondent }} </a>
+{% endfor %}
+</div>
+    </article>
 
                 <section class="survey-builder">
                     <div  data-panel="dashboard">
                         <div class="module-block" style="margin: 0rem;">
                             <h2>Questions:</h2>
                             <div class="response-shell"  style = "padding: 0rem;">
+
 
     {% for summary in summary_list %}
         <article class="question-card-analytics" style="margin:10px auto;">
@@ -1878,7 +1900,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     legend: {position: 'right'},
                                     datalabels: {
                                         color: '#fff',
-                                        font: {weight: 'bold'},
+                                        font: {weight: 'bold',size: 16},
                                         formatter: (value, context) => {
                                             if (value === 0) return null;
                                             const datapoints = context.chart.data.datasets[0].data;
