@@ -493,7 +493,7 @@
                     <div class="header-meta">
                         <form method="get" class="filter-form">
                             <input type="hidden" name="page" value="assigned">
-                            <label class="filter-select">
+                            <!-- <label class="filter-select">
                                 <span>Assigned</span>
                                 <select name="range">
                                     <option value="all" {% if assigned_filters.range == 'all' %}selected{% endif %}>All Time</option>
@@ -501,8 +501,8 @@
                                     <option value="week" {% if assigned_filters.range == 'week' %}selected{% endif %}>This Week</option>
                                     <option value="month" {% if assigned_filters.range == 'month' %}selected{% endif %}>This Month</option>
                                 </select>
-                            </label>
-                            <!--
+                            </label> -->
+
                             <label class="filter-select">
                                 <span>Due</span>
                                 <select name="due">
@@ -510,7 +510,7 @@
                                     <option value="today" {% if assigned_filters.due == 'today' %}selected{% endif %}>Today</option>
                                     <option value="week" {% if assigned_filters.due == 'week' %}selected{% endif %}>This Week</option>
                                     <option value="month" {% if assigned_filters.due == 'month' %}selected{% endif %}>This Month</option>
-                                </select> -->
+                                </select>
                             </label>
                             <button type="submit" class="filter-apply">Apply</button>
                         </form>
