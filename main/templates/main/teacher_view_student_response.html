@@ -274,9 +274,20 @@
     </style>
 </head>
 <body>
-    <a href="{% url 'teacher_dashboard_page' 'history' %}" class="back-link" title="Back to Responses History">
+    <!-- <a href="{% url 'teacher_dashboard_page' 'history' %}" class="back-link" title="Back to Responses History">
         ←
-    </a>
+    </a> -->
+
+    <a href="#" onclick="
+        if (document.referrer !== '') {
+            history.back();
+        } else {
+            window.location.href = '{% url "teacher_dashboard_page" "history" %}'; //fallback if did not work
+        }
+        return false;
+    " class="back-link">
+        ←
+    </a> <!-- made it this way para if from analytics, babalik siya kung san nanggaling indi lagi history page babalik yung link-->
 
     <div class="response-shell">
         <div class="student-info-card">

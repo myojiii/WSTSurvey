@@ -31,7 +31,7 @@
         }
 
         .response-shell {
-            max-width: 880px;
+            max-width: 920px;
             margin: 0 auto;
             padding: 2.6rem 1.8rem 4rem;
         }
@@ -45,8 +45,8 @@
             display: inline-block;
             padding: 0.35rem 0.8rem;
             border-radius: 999px;
-            background: rgba(27, 154, 127, 0.16);
-            color: var(--accent-dark);
+            background: rgba(255, 255, 255, 0.16);
+            color: var(--bg-soft);
             font-size: 0.78rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -151,41 +151,101 @@
             line-height: 2.5;
         }
 
-        .back-link, .back-link-top {
-            display: inline-flex;
+        .back-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-top: 2.4rem;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            box-shadow: 0 8px 24px rgba(27, 154, 127, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(27, 154, 127, 0.45);
+        }
+
+        .survey-info-card {
+            background: linear-gradient(135deg, #1ba87a 0%, #0d7358 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 12px 32px rgba(27, 154, 127, 0.25);
+        }
+
+        .survey-info-card span{
+            color: var(--bg-soft);
+        }
+
+        .action-link {
+            color: #157b63;
             font-weight: 600;
-            color: var(--accent-dark);
             text-decoration: none;
         }
 
-        .back-link-top {
-            margin-top: 0;
-            margin-bottom: 1rem;
+        .action-link:hover {
+            text-decoration: underline;
+        }
+
+        .short-text {
+            color: #157b63;
+            font-weight: 500;
         }
 
         @media (max-width: 640px) {
             .response-shell {
                 padding: 2rem 1.1rem 3.2rem;
             }
+
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
 <body>
+
+    <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link" title="Back to Survey Collection">
+        ←
+    </a>
+
 <div class="response-shell">
 
-<a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link-top">← Back to Survey Collection</a>
 
-    <div class="survey-header">
-        <span class="badge">Responses</span>
+    <div class="survey-info-card">
+        <span class="badge">Survey Response</span>
         <h1>{{ survey.title }}</h1>
+        {% if survey.description %}
+        <p class="meta-line" style="color: var(--bg-soft)">{{ survey.description }}</p>
+        {% endif %}
         <div class="meta-line">
-            <!-- <span>Submitted {{ submission.submitted_at|date:"M d, Y H:i" }}</span> -->
-            <span>Prepared by {{ survey.teacher.first_name }} {{ survey.teacher.last_name }}</span>
+            <span>📝 {{ summary_list|length }} question(s)</span>
+            <span>👤 Assigned by: {{ survey.teacher.first_name }} {{ survey.teacher.last_name }}</span>
         </div>
     </div>
+
+    <article class="question-card">
+        <h2>Respondents</h2>
+<div style="overflow-y:scroll" class="answer-text">{% for submission in submissions %}<a href="{% url 'teacher_view_student_response' submission.id %}" class="action-link">{{ submission.get_respondent }} </a>
+{% endfor %}
+</div>
+    </article>
 
     {% for summary in summary_list %}
         <article class="question-card">
@@ -219,10 +279,9 @@
                 {% endif %}
                 <div class="short-answers">
                 <small>Responses: </small> <br>
-<textarea readonly class="answer-text">
-{% for text in summary.short_answers_orig %}{{ text }}
+<div class="answer-text" style="overflow-y:scroll">{% for text in summary.short_answers_orig %}<span class="short-text">{{ text }}</span>
 {% endfor %}
-</textarea>
+</div>
                 </div>
             {% endif %}
 
@@ -302,8 +361,6 @@
         });
     </script>
 
-
-    <a href="{% url 'teacher_dashboard' %}?survey={{ survey.id }}" class="back-link">← Back to Survey Collection</a>
 </div>
 </body>
 </html>

@@ -184,6 +184,9 @@ class SurveySubmission(models.Model):
     class Meta:
         unique_together = ('survey', 'student')
 
+    def get_respondent(self):
+        return f"{self.student.user.get_full_name()}"
+
     def __str__(self):
         return f"{self.student.user.get_full_name()} - {self.survey.title}"
 

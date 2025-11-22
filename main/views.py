@@ -1126,6 +1126,7 @@ def teacher_analytics(request, survey_id):
         )
 
         for submission in submissions:
+            #print(submission.get_respondent())
             for answer in submission.answers.all():
                 answers.append(answer)
 
