@@ -43,6 +43,10 @@ def _teacher_username() -> str:
     return settings.DEFAULT_TEACHER_EMAIL.lower()
 
 
+def _is_open_status(value: str) -> bool:
+    return (value or "").lower() in {"open", "published"}
+
+
 def _ensure_teacher_account() -> User:
     username = _teacher_username()
     user, created = User.objects.get_or_create(
@@ -356,7 +360,7 @@ def student_take_survey(request, assignment_id):
     if not assignment.section or assignment.section_id != profile.section_id:
         return HttpResponseForbidden("You do not have access to this survey.")
 
-    if assignment.status != "published" or assignment.survey.status != "published":
+    if assignment.status != "published" or not _is_open_status(assignment.survey.status):
         raise Http404
 
     survey = assignment.survey
@@ -605,7 +609,8 @@ def teacher_signin(request):
 
 @login_required(login_url="student_signin")
 def teacher_dashboard(request, page="new"):
-    surveys = Survey.objects.filter(teacher=request.user)
+    excluded_statuses = ["delete", "deleted", "archived", "archive"]
+    surveys = Survey.objects.filter(teacher=request.user).exclude(status__in=excluded_statuses)
 
     # 2. Detect selected survey ID from GET
     selected_id = request.GET.get("survey_id")
@@ -616,51 +621,48 @@ def teacher_dashboard(request, page="new"):
         # Default: first survey
         survey = surveys.first()
 
-    # Define statuses to exclude
-    excluded_statuses = ["delete", "deleted", "archived", "archive"]
-
     # All surveys for the teacher excluding the above statuses
-    collection_surveys = Survey.objects.filter(
-        teacher=request.user
-    ).exclude(status__in=excluded_statuses)
+    collection_surveys_qs = surveys
 
     # Total surveys (after exclusion)
-    total_surveys = collection_surveys.count()
+    total_surveys = collection_surveys_qs.count()
 
     # Active surveys (status == "Open")
-    active_surveys = collection_surveys.filter(status="Open").count()
+    active_surveys = collection_surveys_qs.filter(status__in=["open", "published"]).count()
 
     # Total responses across all surveys (consider only non-excluded surveys)
-    total_responses = SurveySubmission.objects.filter(survey__in=collection_surveys).count()
+    total_responses = SurveySubmission.objects.filter(survey__in=collection_surveys_qs).count()
 
     submissions = []
     answers = []
     summary_list = []
     tempasd = 0
     survey_id = []
-    collection_surveys = []
-
-    collection_surveys = Survey.objects.filter(teacher=request.user)
 
     survey_title = "<Survey Title>"
+    collection_surveys = collection_surveys_qs
 
     if page == "dashboard":
         selected_id = request.GET.get("survey_id")
 
         if selected_id:
-            selected_id = int(selected_id)
+            try:
+                selected_id = int(selected_id)
+            except (TypeError, ValueError):
+                selected_id = None
 
         else:
             # Default: select the first survey in the list
-            selected_id = collection_surveys.first().id
+            default_survey = collection_surveys_qs.first()
+            selected_id = default_survey.id if default_survey else None
 
         # 2. Load the survey object based on selected ID
-        survey = Survey.objects.filter(id=selected_id, teacher=request.user).first()
+        survey = collection_surveys_qs.filter(id=selected_id).first() if selected_id else None
 
 
 
         collection_surveys = (
-            Survey.objects.filter(teacher=request.user)
+            collection_surveys_qs
             .prefetch_related("assignments__section")
             .order_by("-updated_at")
         )
@@ -836,7 +838,7 @@ def teacher_dashboard(request, page="new"):
                 survey_id = None
             if survey_id:
                 survey_to_edit = (
-                    Survey.objects.filter(id=survey_id, teacher=request.user)
+                    collection_surveys_qs.filter(id=survey_id)
                     .prefetch_related("assignments__section")
                     .first()
                 )
@@ -908,6 +910,11 @@ def teacher_dashboard(request, page="new"):
                 "questions": questions_data,
                 "status": survey_to_edit.display_status,
             }
+    collection_surveys = (
+        collection_surveys_qs
+        .prefetch_related("assignments__section")
+        .order_by("-updated_at")
+    )
     return render(
         request,
         "main/teacher_dashboard.html",
@@ -948,8 +955,8 @@ def teacher_save_survey(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON payload."}, status=400)
 
-    status = payload.get("status", "draft")
-    if status not in {"draft", "published"}:
+    status = (payload.get("status") or "draft").lower()
+    if status not in {"draft", "open", "published"}:
         return JsonResponse({"error": "Invalid survey status."}, status=400)
 
     availability = (payload.get("availability") or "open").lower()
@@ -957,8 +964,10 @@ def teacher_save_survey(request):
         return JsonResponse({"error": "Invalid availability option."}, status=400)
 
     final_status = status
-    if status == "published" and availability == "closed":
+    if _is_open_status(status) and availability == "closed":
         final_status = "closed"
+    elif status == "published":
+        final_status = "open"
 
     title = (payload.get("title") or "").strip()
     if not title:
@@ -976,11 +985,11 @@ def teacher_save_survey(request):
     ClassSection.ensure_seeded()
     sections_map = {section.section_id: section for section in ClassSection.objects.filter(section_id__in=section_ids)}
 
-    if status == "published" and len(sections_map) != len(section_ids):
+    if _is_open_status(status) and len(sections_map) != len(section_ids):
         return JsonResponse({"error": "One or more selected sections could not be found."}, status=400)
 
     questions_payload = payload.get("questions") or []
-    if status == "published" and not questions_payload:
+    if _is_open_status(status) and not questions_payload:
         return JsonResponse({"error": "Add at least one question before publishing."}, status=400)
 
     survey_id = payload.get("survey_id")
@@ -998,8 +1007,9 @@ def teacher_save_survey(request):
         survey.description = description
         survey.due_date = due_date
         survey.status = final_status
-        if status == "published":
-            survey.published_at = timezone.now()
+        if final_status in {"open", "closed"}:
+            if survey.published_at is None:
+                survey.published_at = timezone.now()
         else:
             survey.published_at = None
         survey.save()
@@ -1016,9 +1026,9 @@ def teacher_save_survey(request):
             if not assignment:
                 assignment = SurveyAssignment(survey=survey, section=section)
             assignment.section = section
-            assignment.status = "published" if status == "published" else "draft"
+            assignment.status = "published" if final_status in {"open", "closed"} else "draft"
             assignment.due_date = due_date
-            assignment.assigned_date = timezone.now() if status == "published" else None
+            assignment.assigned_date = timezone.now() if final_status in {"open", "closed"} else None
             assignment.save()
             keep_ids.add(section_id)
 
@@ -1071,6 +1081,22 @@ def teacher_save_survey(request):
                 ShortAnswerQuestion.objects.create(question=question, max_length=max_length)
 
     return JsonResponse({"id": survey.id, "status": survey.display_status})
+
+
+@require_POST
+@login_required(login_url="student_signin")
+def teacher_archive_survey(request, survey_id):
+    if request.user.username != _teacher_username():
+        return HttpResponseForbidden("Only the teacher account can archive surveys.")
+
+    survey = get_object_or_404(
+        Survey.objects.select_related("teacher"),
+        id=survey_id,
+        teacher=request.user,
+    )
+    survey.status = "archived"
+    survey.save(update_fields=["status", "updated_at"])
+    return JsonResponse({"id": survey.id, "status": survey.status})
 
 
 @login_required(login_url="student_signin")

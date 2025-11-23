@@ -1996,6 +1996,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const publishBtn = document.getElementById('publish-btn');
             const previewBtn = document.getElementById('preview-btn');
             const responsesBtn = document.getElementById('view-responses-btn');
+            const deleteSurveyBtn = document.getElementById('delete-survey-btn');
             const sectionInputs = builder.querySelectorAll('input[name="assigned_sections"]');
             const availabilityInputs = builder.querySelectorAll('input[name="survey_availability"]');
             const toolbox = document.getElementById('question-toolbox');
@@ -2016,6 +2017,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     return '';
                 }
                 const normalized = String(status).toLowerCase();
+                if (normalized === 'open') {
+                    return 'Open';
+                }
                 if (normalized === 'published') {
                     return 'Open';
                 }
@@ -2034,6 +2038,11 @@ document.addEventListener("DOMContentLoaded", function () {
             function isClosedStatus(status) {
                 const normalized = String(status || '').toLowerCase();
                 return normalized === 'closed' || normalized === 'archived';
+            }
+
+            function isOpenStatus(status) {
+                const normalized = String(status || '').toLowerCase();
+                return normalized === 'open' || normalized === 'published';
             }
 
             function nextQuestionId() {
@@ -2687,10 +2696,29 @@ document.addEventListener("DOMContentLoaded", function () {
                 save: "{% url 'teacher_save_survey' %}",
                 previewTemplate: "{% url 'teacher_preview_survey' 0 %}",
                 collection: "{% url 'teacher_dashboard_page' 'collection' %}",
+                archiveTemplate: "{% url 'teacher_archive_survey' 0 %}",
             };
 
             let currentSurveyId = initialSurveyData ? initialSurveyData.id : null;
             let isSaving = false;
+
+            function updateDeleteButtonState() {
+                if (!deleteSurveyBtn) {
+                    return;
+                }
+                const disabled = !currentSurveyId;
+                deleteSurveyBtn.disabled = disabled;
+                deleteSurveyBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+            }
+
+            function buildArchiveUrl() {
+                if (!routes.archiveTemplate || !currentSurveyId) {
+                    return null;
+                }
+                return routes.archiveTemplate.replace('/0/', `/${currentSurveyId}/`);
+            }
+
+            updateDeleteButtonState();
 
             function getCsrfToken() {
                 const match = document.cookie.match(/csrftoken=([^;]+)/);
@@ -2750,11 +2778,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (payload.questions.length === 0) {
                     throw new Error('Add at least one question before saving.');
                 }
-                if (status === 'published' && payload.sections.length === 0) {
+                if (isOpenStatus(status) && payload.sections.length === 0) {
 
                     throw new Error('Select at least one section before publishing.');
                 }
-                if (status === 'published') {
+                if (isOpenStatus(status)) {
                     const invalidQuestion = payload.questions.find(function(question) {
                         if (question.question_type === 'multiple_choice') {
                             return !question.choices || question.choices.length < 2;
@@ -2772,6 +2800,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
             function showMessage(message) {
                 window.alert(message);
+            }
+
+            async function archiveSurvey() {
+                if (!deleteSurveyBtn) {
+                    return;
+                }
+                if (!currentSurveyId) {
+                    showMessage('Save this survey before deleting it.');
+                    updateDeleteButtonState();
+                    return;
+                }
+                if (!window.confirm('Archive this survey? It will disappear from your collection but stay saved in the database.')) {
+                    updateDeleteButtonState();
+                    return;
+                }
+
+                deleteSurveyBtn.disabled = true;
+
+                try {
+                    const archiveUrl = buildArchiveUrl();
+                    if (!archiveUrl) {
+                        throw new Error('Unable to find the archive path for this survey.');
+                    }
+                    const response = await fetch(archiveUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                        },
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Unable to archive this survey right now.');
+                    }
+                    currentSurveyId = null;
+                    updateDeleteButtonState();
+                    showMessage('Survey archived. Redirecting to your collection.');
+                    window.location.href = routes.collection;
+                } catch (error) {
+                    updateDeleteButtonState();
+                    showMessage(error.message);
+                }
             }
 
             async function submitSurvey(status, options) {
@@ -2818,6 +2887,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     currentSurveyId = result.id;
+                    updateDeleteButtonState();
                     if (result.status) {
                         const statusBadge = document.getElementById('survey-status-badge');
                         if (statusBadge) {
@@ -2828,7 +2898,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             availabilityInputs.forEach(function(input) {
                                 if (isClosedStatus(result.status)) {
                                     input.checked = input.value === 'closed';
-                                } else if (result.status === 'published' || result.status === 'draft') {
+                                } else if (isOpenStatus(result.status) || result.status === 'draft') {
                                     input.checked = input.value === 'open';
                                 }
                             });
@@ -2847,8 +2917,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
 
-                    if (status === 'published') {
-                        showMessage('Survey published successfully!');
+                    if (isOpenStatus(status)) {
+                        showMessage('Survey opened successfully!');
                         window.location.href = routes.collection;
                     } else {
                         showMessage('Survey saved to drafts.');
@@ -2871,7 +2941,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (publishBtn) {
                 publishBtn.addEventListener('click', function() {
-                    submitSurvey('published');
+                    submitSurvey('open');
                 });
             }
 
@@ -2879,6 +2949,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 previewBtn.addEventListener('click', function() {
                     submitSurvey('draft', { preview: true });
                 });
+            }
+
+            if (deleteSurveyBtn) {
+                deleteSurveyBtn.addEventListener('click', archiveSurvey);
             }
 
             if (responsesBtn) {

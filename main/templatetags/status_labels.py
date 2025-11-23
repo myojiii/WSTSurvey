@@ -4,6 +4,7 @@ register = template.Library()
 
 _STATUS_LABELS = {
     "draft": "Draft",
+    "open": "Open",
     "published": "Open",
     "closed": "Closed",
     "archived": "Archived",

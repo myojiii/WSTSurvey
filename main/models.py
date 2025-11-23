@@ -62,7 +62,7 @@ wait ko muna kayo kung pano retrieve tsaka create
 class Survey(models.Model):
     STATUS_CHOICES = [
         ("draft", "Draft"),
-        ("published", "Published"),
+        ("open", "Open"),
         ("closed", "Closed"),
         ("archived", "Archived"),
     ]
@@ -84,7 +84,9 @@ class Survey(models.Model):
 
     @property
     def display_status(self):
-        status = self.status or "draft"
+        status = (self.status or "draft").lower()
+        if status == "published":
+            status = "open"
         if status in {"draft", "closed", "archived"}:
             return status
         due_date = self.due_date
