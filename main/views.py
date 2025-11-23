@@ -608,7 +608,7 @@ def teacher_signin(request):
 
 
 @login_required(login_url="student_signin")
-def teacher_dashboard(request, page="new"):
+def teacher_dashboard(request, page="collection"):
     excluded_statuses = ["delete", "deleted", "archived", "archive"]
     surveys = Survey.objects.filter(teacher=request.user).exclude(status__in=excluded_statuses)
 
